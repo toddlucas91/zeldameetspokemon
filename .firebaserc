@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "toddspokepwa": {
+      "hosting": {
+        "apr11app": [
+          "toddspokepwa"
+        ]
+      }
+    }
+  }
+}

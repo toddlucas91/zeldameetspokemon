@@ -1,0 +1,1852 @@
+<nb-card style="text-align:center; ">
+<div>
+  <div *ngIf="selectPokemonBool === true">
+    <img id="title3" style="max-width: 300px;" src="assets/img/title4.png"/><br>
+    <img id="pikachu-sleeping-down-one" style="min-width: 50px;min-height: 50px;" (click)="choosePokemon('pikachu')" src="assets/img/pikachu/sleeping/tile000.png"/>&nbsp;
+    <img id="bulbasaur-sleeping-down-one" style="min-width: 50px;min-height: 50px;" (click)="choosePokemon('bulbasaur')" src="assets/img/bulbasaur/sleeping/tile000.png"/>&nbsp;
+    <img id="squirtle-sleeping-down-one" style="min-width: 50px;min-height: 50px;" (click)="choosePokemon('squirtle')" src="assets/img/squirtle/sleeping/tile000.png"/>&nbsp;
+    <img id="charmander-sleeping-down-one" style="min-width: 50px;min-height: 50px;" (click)="choosePokemon('charmander')" src="assets/img/charmander/sleeping/tile000.png"/>&nbsp;
+    <img id="cubone-sleeping-down-one" style="min-width: 50px;min-height: 50px;" (click)="choosePokemon('cubone')" src="assets/img/cubone/sleeping/tile000.png"/>
+  </div>
+
+
+  <div *ngIf="selectPokemonBool === false">
+    <div *ngFor="let pet of displayteam;let i=index"  (click)="onSelect(pet)" style="float:left; max-width:20px; max-height: 20px;">
+      <div *ngIf="i<6">
+        <img height="20px" width="20px" id="{{pet.name}}-down1" src="assets/img/{{pet.name}}/walking/tile000.png"/>
+      </div>
+    </div>
+
+  <div style="text-align: right;">
+    <progress style="height: 6px; text-align: left; max-width: 200px;" id="expbar" value="{{petExp}}" max="{{petExpMax}}"></progress>&nbsp;&nbsp;
+    <label style="font-size:13px;">Lv <label id="lvl">{{petLevel}}</label></label>
+  </div>
+</div>
+
+
+<div *ngIf="pauseGameBool === true">
+  <!-- <nb-card *ngIf="selectedPet" (click)="onSelect(pet)" size="tiny" status="success">
+    <nb-card-header>
+      <img id="{{selectedPet.name}}-down1" src="assets/img/{{selectedPet.name}}/attacking/tile000.png"/>
+      {{selectedPet.name}}
+    </nb-card-header>
+      Level: {{selectedPet.level}}
+      <br>HP: {{selectedPet.displayHp}}
+      <br>Attack: {{selectedPet.displayDamage}}
+      <br>Type: {{selectedPet.type}}
+      <br>Nature: {{selectedPet.nature}}
+      <br>Exp Max: {{selectedPet.expMax}}
+      <br>Rarity: {{selectedPet.displayRare/10}}
+  </nb-card> -->
+  <nb-card size="medium" status="info">
+    <nb-card-header>
+      Stats
+    </nb-card-header>
+    <nb-card-body>
+      <nb-list>
+        <nb-list-item  *ngFor="let pet of displayteam"  (click)="onSelect(pet)">
+        <img height="20px" width="20px" id="{{pet.name}}-down1" src="assets/img/{{pet.name}}/walking/tile000.png"/>
+        Lv{{pet.level}} (HP:{{pet.displayHp}})(Atk:{{pet.displayDamage}})(Type:{{pet.type}}) Potential: {{pet.displayRare}}
+        </nb-list-item>
+      </nb-list>
+    </nb-card-body>
+</nb-card>
+<button nbButton shape="round"  size="tiny"  outline status="warning" style="font-size:xx-small;max-width: 45px;max-height: 25px;float:right;" (click)="pauseGame()">Resume</button>
+</div>
+
+
+<canvas id="cnvs" style="border:3px solid black;background-image:url('assets/img/{{biomeMap}}.png');"></canvas>
+<br>
+<!-- Mobile -->
+<div style="float:left;" *ngIf="screenWidth < 700">
+<button size="giant" id="upButton" nbButton   status="info"  (mousedown)="walkUp()" (mouseup)="stopWalking()" (touchstart)="walkUp()" (touchend)="stopWalking()">&nbsp;&nbsp;&nbsp;</button><br>
+<button size="giant" id="leftButton" nbButton  status="info" (mousedown)="walkLeft()" (mouseup)="stopWalking()"(touchstart)="walkLeft()" (touchend)="stopWalking()">&nbsp;&nbsp;&nbsp;</button>
+<button size="giant"  id="downButton" nbButton outline status="info" (mousedown)="walkDown()" (mouseup)="stopWalking()"(touchstart)="walkDown()" (touchend)="stopWalking()">&nbsp;&nbsp;&nbsp;</button>
+<button size="giant"  id="rightButton" nbButton  status="info" (mousedown)="walkRight()" (mouseup)="stopWalking()"(touchstart)="walkRight()" (touchend)="stopWalking()"> &nbsp;&nbsp;&nbsp;</button><br>
+<button size="giant"  id="downButton2" nbButton  status="info" (mousedown)="walkDown()" (mouseup)="stopWalking()" (touchstart)="walkDown()" (touchend)="stopWalking()">&nbsp;&nbsp;&nbsp;</button>
+</div>
+<!-- Desktop -->
+<div style="float:left;" *ngIf="screenWidth > 699">
+  <button size="medium"   nbButton  outline status="info"  (mousedown)="walkUp()" (mouseup)="stopWalking()" (touchstart)="walkUp()" (touchend)="stopWalking()">UP(W)</button>
+  <button size="medium"  nbButton outline status="info" (mousedown)="walkLeft()" (mouseup)="stopWalking()" (touchstart)="walkLeft()" (touchend)="stopWalking()">LEFT(A)</button>
+  <button size="medium"   nbButton outline status="info" (mousedown)="walkRight()" (mouseup)="stopWalking()"(touchstart)="walkRight()" (touchend)="stopWalking()">RIGHT(D)</button>
+  <button size="medium"   nbButton outline  status="info" (mousedown)="walkDown()" (mouseup)="stopWalking()" (touchstart)="walkDown()" (touchend)="stopWalking()">DOWN(S)</button>
+  </div>
+<!-- Mobile -->
+<div style="float:right;" *ngIf="screenWidth < 700">
+  <div *ngIf="battleBool === true">
+    <br><br>
+    <button nbButton shape="round" size="small"  status="danger"style="width: 60px; height: 30px" id="attackButton" (click)="basicAttack()">Attack</button>&nbsp;
+    <button nbButton shape="round" size="small"  status="danger"style="width: 60px; height: 30px" id="attackButton" (click)="basicAttack()">Attack2</button><br><br>
+    <button nbButton shape="round" size="small"  status="danger"style="width: 60px; height: 30px" id="attackButton" (click)="switchPokemon()">Switch</button>&nbsp;
+    <button nbButton shape="round" size="small"  status="danger"style="width: 60px; height: 30px" id="attackButton" (click)="attackButton()">Run</button>
+  <br><br><br>
+  <button *ngIf="mountBool === true" nbButton shape="round"  size="tiny"  outline status="warning" style="font-size:xx-small;max-width: 50px;max-height: 25px;float:right;" (click)="ridePokemon()">Ride</button><br><br>
+  <button nbButton shape="round"  size="tiny"  outline status="info" style="font-size:xx-small;max-width: 50px;max-height: 25px;float:right;" (click)="rareCandy()">Save</button>
+  </div>
+  <div *ngIf="battleBool === false">
+    <button *ngIf="catchBool === true" nbButton shape="round" size="tiny" outline status="danger"style="font-size:xx-small; width: 50px; height: 30px;"  (click)="pokeBall()">Catch</button>
+    <button nbButton shape="round" size="tiny" outline status="danger"style="font-size:xx-small; width: 50px; height: 30px; float: right;"  (click)="switchPokemon()">Swtich</button>
+    <br>
+    <br><br>
+    <button nbButton shape="round" size="giant"  status="danger"style="max-width: 100px" id="attackButton" (click)="attackButton()">Battle</button>&nbsp;
+  <br><br><br>
+  <button *ngIf="mountBool === true" nbButton shape="round"  size="tiny"  outline status="warning" style="font-size:xx-small;max-width: 50px;max-height: 25px;float:right;" (click)="ridePokemon()">Ride</button><br><br>
+  <button nbButton shape="round"  size="tiny"  outline status="info" style="font-size:xx-small;max-width: 50px;max-height: 25px;float:right;" (click)="rareCandy()">Save</button>
+  </div>
+</div>
+
+<!-- Desktop -->
+<div style="float:right;" *ngIf="screenWidth > 699">
+  <div *ngIf="battleBool === true">
+    <button nbButton size="medium" outline status="info"   (click)="basicAttack()">Attack(1)</button>
+    <button nbButton size="medium" outline status="info"   (click)="switchPokemon()">Switch(R)</button>
+    <button nbButton size="medium" outline status="info"  (click)="pokeBall()">Catch(Q)</button>
+    <button nbButton size="medium" outline status="info"  (click)="attackButton()">Run(E)</button>
+
+  <button nbButton size="medium" outline status="info"  (click)="rareCandy()">Save(Space)</button>
+  </div>
+  <div *ngIf="battleBool === false">
+    <button *ngIf="mountBool === true" nbButton outline status="info"  size="medium" (click)="ridePokemon()">Ride(Shift)</button>
+    <button nbButton  size="medium" outline status="info"  (click)="pokeBall()">Catch(Q)</button>
+    <button nbButton size="medium" outline status="info"  (click)="switchPokemon()">Switch(R)</button>
+    <button nbButton size="medium" outline status="info" (click)="attackButton()">Battle(E)</button>
+  <button nbButton size="medium" outline status="info" (click)="rareCandy()">Save(Space)</button>
+  </div>
+</div>
+
+</div>
+</nb-card>
+<button nbButton shape="round"  size="tiny"  outline status="info" style="font-size:xx-small;max-width: 50px;max-height: 25px; float: left;" (click)="deletePokemon()">Release</button>
+<label (click)="deleteSave()" style="font-size:8px; color: gray; float: right;"><label id="versionNumber">2.18</label></label>
+<div style="display:none;">
+  <audio src="assets/img/music4.mp3" id="music4"></audio>
+  <audio src="assets/img/caught.wav" id="caughtsound"></audio>
+  <audio src="assets/img/levelup.mp3" id="levelupsound"></audio>
+  <audio src="assets/img/battle.mp3" id="battle"></audio>
+  <audio src="assets/img/heal.mp3" id="heal"></audio>
+  <img id="rock" src="assets/img/rock2.png"/>
+  <img id="tree" src="assets/img/tree2.png"/>
+  <img id="bush" src="assets/img/bush.png"/>
+  <img id="ball-1" src="assets/img/ball_1.png"/>
+  <img id="ball-2" src="assets/img/ball_2.png"/>
+  <img id="ball-3" src="assets/img/ball_3.png"/>
+  <img id="pokecenter" src="assets/img/pokecenter.png"/>
+  <img id="night" src="assets/img/night.png"/>
+  <img id="night2" src="assets/img/night2.png"/>
+  <img id="noon" src="assets/img/noon.png"/>
+  <img id="rain" src="assets/img/rain.png"/>
+  <img id="snowing" src="assets/img/snowing.png"/>
+  <img id="caveground" src="assets/img/caveground.png"/>
+  <img id="pokecenterfloor" src="assets/img/pokecenterfloor.png"/>
+
+  <img id="fire_ground" src="assets/img/fire_ground.png"/>
+  <img id="cave_entrance" src="assets/img/cave_entrance.png"/>
+
+  <img id="snowtree" src="assets/img/snowtree.png"/>
+  <img id="snowbush" src="assets/img/snowbush.png"/>
+  <img id="snowrock" src="assets/img/snowrock.png"/>
+  <img id="dirttree" src="assets/img/dirttree.png"/>
+  <img id="dirtbush" src="assets/img/dirtbush.png"/>
+  <img id="dirtrock" src="assets/img/dirtrock.png"/>
+  <img id="swamptree" src="assets/img/swamptree.png"/>
+  <img id="swampbush" src="assets/img/swampbush.png"/>
+  <img id="swamprock" src="assets/img/swamprock.png"/>
+
+
+
+  <img id="fireAttack" src="assets/img/fireAttack.png"/>
+  <img id="waterAttack" src="assets/img/waterAttack.png"/>
+  <img id="grassAttack" src="assets/img/grassAttack.png"/>
+  <img id="poisonAttack" src="assets/img/poisonAttack.png"/>
+  <img id="electricAttack" src="assets/img/electricAttack.png"/>
+  <img id="flyingAttack" src="assets/img/flyingAttack.png"/>
+
+
+  <img id="gyarados-walking-down-one" src="assets/img/gyarados/walking/tile000.png"/>
+  <img id="gyarados-walking-down-two" src="assets/img/gyarados/walking/tile001.png"/>
+  <img id="gyarados-walking-down-three" src="assets/img/gyarados/walking/tile002.png"/>
+  <img id="gyarados-walking-up-one" src="assets/img/gyarados/walking/tile003.png"/>
+  <img id="gyarados-walking-up-two" src="assets/img/gyarados/walking/tile004.png"/>
+  <img id="gyarados-walking-up-three" src="assets/img/gyarados/walking/tile005.png"/>
+  <img id="gyarados-walking-left-one" src="assets/img/gyarados/walking/tile006.png"/>
+  <img id="gyarados-walking-left-two" src="assets/img/gyarados/walking/tile007.png"/>
+  <img id="gyarados-walking-left-three" src="assets/img/gyarados/walking/tile008.png"/>
+  <img id="gyarados-walking-right-one" src="assets/img/gyarados/walking/tile009.png"/>
+  <img id="gyarados-walking-right-two" src="assets/img/gyarados/walking/tile010.png"/>
+  <img id="gyarados-walking-right-three" src="assets/img/gyarados/walking/tile011.png"/>
+  <img id="gyarados-attacking-down-one" src="assets/img/gyarados/attacking/tile000.png"/>
+  <img id="gyarados-attacking-down-two" src="assets/img/gyarados/attacking/tile001.png"/>
+  <img id="gyarados-attacking-down-three" src="assets/img/gyarados/attacking/tile002.png"/>
+  <img id="gyarados-attacking-up-one" src="assets/img/gyarados/attacking/tile003.png"/>
+  <img id="gyarados-attacking-up-two" src="assets/img/gyarados/attacking/tile004.png"/>
+  <img id="gyarados-attacking-up-three" src="assets/img/gyarados/attacking/tile005.png"/>
+  <img id="gyarados-attacking-left-one" src="assets/img/gyarados/attacking/tile006.png"/>
+  <img id="gyarados-attacking-left-two" src="assets/img/gyarados/attacking/tile007.png"/>
+  <img id="gyarados-attacking-left-three" src="assets/img/gyarados/attacking/tile008.png"/>
+  <img id="gyarados-attacking-right-one" src="assets/img/gyarados/attacking/tile009.png"/>
+  <img id="gyarados-attacking-right-two" src="assets/img/gyarados/attacking/tile010.png"/>
+  <img id="gyarados-attacking-right-three" src="assets/img/gyarados/attacking/tile011.png"/>
+  <img id="gyarados-sleeping-down-one" src="assets/img/gyarados/sleeping/tile000.png"/>
+  <img id="gyarados-sleeping-down-two" src="assets/img/gyarados/sleeping/tile001.png"/>
+  <img id="gyarados-sleeping-down-three" src="assets/img/gyarados/sleeping/tile002.png"/>
+  <img id="gyarados-sleeping-up-one" src="assets/img/gyarados/sleeping/tile000.png"/>
+  <img id="gyarados-sleeping-up-two" src="assets/img/gyarados/sleeping/tile001.png"/>
+  <img id="gyarados-sleeping-up-three" src="assets/img/gyarados/sleeping/tile002.png"/>
+  <img id="gyarados-sleeping-left-one" src="assets/img/gyarados/sleeping/tile000.png"/>
+  <img id="gyarados-sleeping-left-two" src="assets/img/gyarados/sleeping/tile001.png"/>
+  <img id="gyarados-sleeping-left-three" src="assets/img/gyarados/sleeping/tile002.png"/>
+  <img id="gyarados-sleeping-right-one" src="assets/img/gyarados/sleeping/tile000.png"/>
+  <img id="gyarados-sleeping-right-two" src="assets/img/gyarados/sleeping/tile001.png"/>
+  <img id="gyarados-sleeping-right-three" src="assets/img/gyarados/sleeping/tile002.png"/>
+  
+  <img id="arcanine-dead-down-one" src="assets/img/arcanine/walking/tile012.png"/>
+  <img id="arcanine-walking-down-one" src="assets/img/arcanine/walking/tile000.png"/>
+  <img id="arcanine-walking-down-two" src="assets/img/arcanine/walking/tile001.png"/>
+  <img id="arcanine-walking-down-three" src="assets/img/arcanine/walking/tile002.png"/>
+  <img id="arcanine-walking-up-one" src="assets/img/arcanine/walking/tile003.png"/>
+  <img id="arcanine-walking-up-two" src="assets/img/arcanine/walking/tile004.png"/>
+  <img id="arcanine-walking-up-three" src="assets/img/arcanine/walking/tile005.png"/>
+  <img id="arcanine-walking-left-one" src="assets/img/arcanine/walking/tile006.png"/>
+  <img id="arcanine-walking-left-two" src="assets/img/arcanine/walking/tile007.png"/>
+  <img id="arcanine-walking-left-three" src="assets/img/arcanine/walking/tile008.png"/>
+  <img id="arcanine-walking-right-one" src="assets/img/arcanine/walking/tile009.png"/>
+  <img id="arcanine-walking-right-two" src="assets/img/arcanine/walking/tile010.png"/>
+  <img id="arcanine-walking-right-three" src="assets/img/arcanine/walking/tile011.png"/>
+  <img id="arcanine-attacking-down-one" src="assets/img/arcanine/attacking/tile000.png"/>
+  <img id="arcanine-attacking-down-two" src="assets/img/arcanine/attacking/tile001.png"/>
+  <img id="arcanine-attacking-down-three" src="assets/img/arcanine/attacking/tile002.png"/>
+  <img id="arcanine-attacking-up-one" src="assets/img/arcanine/attacking/tile003.png"/>
+  <img id="arcanine-attacking-up-two" src="assets/img/arcanine/attacking/tile004.png"/>
+  <img id="arcanine-attacking-up-three" src="assets/img/arcanine/attacking/tile005.png"/>
+  <img id="arcanine-attacking-left-one" src="assets/img/arcanine/attacking/tile006.png"/>
+  <img id="arcanine-attacking-left-two" src="assets/img/arcanine/attacking/tile007.png"/>
+  <img id="arcanine-attacking-left-three" src="assets/img/arcanine/attacking/tile008.png"/>
+  <img id="arcanine-attacking-right-one" src="assets/img/arcanine/attacking/tile009.png"/>
+  <img id="arcanine-attacking-right-two" src="assets/img/arcanine/attacking/tile010.png"/>
+  <img id="arcanine-attacking-right-three" src="assets/img/arcanine/attacking/tile011.png"/>
+  <img id="arcanine-sleeping-down-one" src="assets/img/arcanine/sleeping/tile000.png"/>
+  <img id="arcanine-sleeping-down-two" src="assets/img/arcanine/sleeping/tile001.png"/>
+  <img id="arcanine-sleeping-down-three" src="assets/img/arcanine/sleeping/tile002.png"/>
+  <img id="arcanine-sleeping-up-one" src="assets/img/arcanine/sleeping/tile000.png"/>
+  <img id="arcanine-sleeping-up-two" src="assets/img/arcanine/sleeping/tile001.png"/>
+  <img id="arcanine-sleeping-up-three" src="assets/img/arcanine/sleeping/tile002.png"/>
+  <img id="arcanine-sleeping-left-one" src="assets/img/arcanine/sleeping/tile000.png"/>
+  <img id="arcanine-sleeping-left-two" src="assets/img/arcanine/sleeping/tile001.png"/>
+  <img id="arcanine-sleeping-left-three" src="assets/img/arcanine/sleeping/tile002.png"/>
+  <img id="arcanine-sleeping-right-one" src="assets/img/arcanine/sleeping/tile000.png"/>
+  <img id="arcanine-sleeping-right-two" src="assets/img/arcanine/sleeping/tile001.png"/>
+  <img id="arcanine-sleeping-right-three" src="assets/img/arcanine/sleeping/tile002.png"/>
+
+  <img id="articuno-dead-down-one" src="assets/img/articuno/walking/tile012.png"/>
+  <img id="articuno-walking-down-one" src="assets/img/articuno/walking/tile000.png"/>
+  <img id="articuno-walking-down-two" src="assets/img/articuno/walking/tile001.png"/>
+  <img id="articuno-walking-down-three" src="assets/img/articuno/walking/tile002.png"/>
+  <img id="articuno-walking-up-one" src="assets/img/articuno/walking/tile003.png"/>
+  <img id="articuno-walking-up-two" src="assets/img/articuno/walking/tile004.png"/>
+  <img id="articuno-walking-up-three" src="assets/img/articuno/walking/tile005.png"/>
+  <img id="articuno-walking-left-one" src="assets/img/articuno/walking/tile006.png"/>
+  <img id="articuno-walking-left-two" src="assets/img/articuno/walking/tile007.png"/>
+  <img id="articuno-walking-left-three" src="assets/img/articuno/walking/tile008.png"/>
+  <img id="articuno-walking-right-one" src="assets/img/articuno/walking/tile009.png"/>
+  <img id="articuno-walking-right-two" src="assets/img/articuno/walking/tile010.png"/>
+  <img id="articuno-walking-right-three" src="assets/img/articuno/walking/tile011.png"/>
+  <img id="articuno-attacking-down-one" src="assets/img/articuno/attacking/tile000.png"/>
+  <img id="articuno-attacking-down-two" src="assets/img/articuno/attacking/tile001.png"/>
+  <img id="articuno-attacking-down-three" src="assets/img/articuno/attacking/tile002.png"/>
+  <img id="articuno-attacking-up-one" src="assets/img/articuno/attacking/tile003.png"/>
+  <img id="articuno-attacking-up-two" src="assets/img/articuno/attacking/tile004.png"/>
+  <img id="articuno-attacking-up-three" src="assets/img/articuno/attacking/tile005.png"/>
+  <img id="articuno-attacking-left-one" src="assets/img/articuno/attacking/tile006.png"/>
+  <img id="articuno-attacking-left-two" src="assets/img/articuno/attacking/tile007.png"/>
+  <img id="articuno-attacking-left-three" src="assets/img/articuno/attacking/tile008.png"/>
+  <img id="articuno-attacking-right-one" src="assets/img/articuno/attacking/tile009.png"/>
+  <img id="articuno-attacking-right-two" src="assets/img/articuno/attacking/tile010.png"/>
+  <img id="articuno-attacking-right-three" src="assets/img/articuno/attacking/tile011.png"/>
+  <img id="articuno-sleeping-down-one" src="assets/img/articuno/sleeping/tile000.png"/>
+  <img id="articuno-sleeping-down-two" src="assets/img/articuno/sleeping/tile001.png"/>
+  <img id="articuno-sleeping-down-three" src="assets/img/articuno/sleeping/tile002.png"/>
+  <img id="articuno-sleeping-up-one" src="assets/img/articuno/sleeping/tile000.png"/>
+  <img id="articuno-sleeping-up-two" src="assets/img/articuno/sleeping/tile001.png"/>
+  <img id="articuno-sleeping-up-three" src="assets/img/articuno/sleeping/tile002.png"/>
+  <img id="articuno-sleeping-left-one" src="assets/img/articuno/sleeping/tile000.png"/>
+  <img id="articuno-sleeping-left-two" src="assets/img/articuno/sleeping/tile001.png"/>
+  <img id="articuno-sleeping-left-three" src="assets/img/articuno/sleeping/tile002.png"/>
+  <img id="articuno-sleeping-right-one" src="assets/img/articuno/sleeping/tile000.png"/>
+  <img id="articuno-sleeping-right-two" src="assets/img/articuno/sleeping/tile001.png"/>
+  <img id="articuno-sleeping-right-three" src="assets/img/articuno/sleeping/tile002.png"/>
+
+  <img id="blastoise-dead-down-one" src="assets/img/blastoise/walking/tile012.png"/>
+  <img id="blastoise-walking-down-one" src="assets/img/blastoise/walking/tile000.png"/>
+  <img id="blastoise-walking-down-two" src="assets/img/blastoise/walking/tile001.png"/>
+  <img id="blastoise-walking-down-three" src="assets/img/blastoise/walking/tile002.png"/>
+  <img id="blastoise-walking-up-one" src="assets/img/blastoise/walking/tile003.png"/>
+  <img id="blastoise-walking-up-two" src="assets/img/blastoise/walking/tile004.png"/>
+  <img id="blastoise-walking-up-three" src="assets/img/blastoise/walking/tile005.png"/>
+  <img id="blastoise-walking-left-one" src="assets/img/blastoise/walking/tile006.png"/>
+  <img id="blastoise-walking-left-two" src="assets/img/blastoise/walking/tile007.png"/>
+  <img id="blastoise-walking-left-three" src="assets/img/blastoise/walking/tile008.png"/>
+  <img id="blastoise-walking-right-one" src="assets/img/blastoise/walking/tile009.png"/>
+  <img id="blastoise-walking-right-two" src="assets/img/blastoise/walking/tile010.png"/>
+  <img id="blastoise-walking-right-three" src="assets/img/blastoise/walking/tile011.png"/>
+  <img id="blastoise-attacking-down-one" src="assets/img/blastoise/attacking/tile000.png"/>
+  <img id="blastoise-attacking-down-two" src="assets/img/blastoise/attacking/tile001.png"/>
+  <img id="blastoise-attacking-down-three" src="assets/img/blastoise/attacking/tile002.png"/>
+  <img id="blastoise-attacking-up-one" src="assets/img/blastoise/attacking/tile003.png"/>
+  <img id="blastoise-attacking-up-two" src="assets/img/blastoise/attacking/tile004.png"/>
+  <img id="blastoise-attacking-up-three" src="assets/img/blastoise/attacking/tile005.png"/>
+  <img id="blastoise-attacking-left-one" src="assets/img/blastoise/attacking/tile006.png"/>
+  <img id="blastoise-attacking-left-two" src="assets/img/blastoise/attacking/tile007.png"/>
+  <img id="blastoise-attacking-left-three" src="assets/img/blastoise/attacking/tile008.png"/>
+  <img id="blastoise-attacking-right-one" src="assets/img/blastoise/attacking/tile009.png"/>
+  <img id="blastoise-attacking-right-two" src="assets/img/blastoise/attacking/tile010.png"/>
+  <img id="blastoise-attacking-right-three" src="assets/img/blastoise/attacking/tile011.png"/>
+  <img id="blastoise-sleeping-down-one" src="assets/img/blastoise/sleeping/tile000.png"/>
+  <img id="blastoise-sleeping-down-two" src="assets/img/blastoise/sleeping/tile001.png"/>
+  <img id="blastoise-sleeping-down-three" src="assets/img/blastoise/sleeping/tile002.png"/>
+  <img id="blastoise-sleeping-up-one" src="assets/img/blastoise/sleeping/tile000.png"/>
+  <img id="blastoise-sleeping-up-two" src="assets/img/blastoise/sleeping/tile001.png"/>
+  <img id="blastoise-sleeping-up-three" src="assets/img/blastoise/sleeping/tile002.png"/>
+  <img id="blastoise-sleeping-left-one" src="assets/img/blastoise/sleeping/tile000.png"/>
+  <img id="blastoise-sleeping-left-two" src="assets/img/blastoise/sleeping/tile001.png"/>
+  <img id="blastoise-sleeping-left-three" src="assets/img/blastoise/sleeping/tile002.png"/>
+  <img id="blastoise-sleeping-right-one" src="assets/img/blastoise/sleeping/tile000.png"/>
+  <img id="blastoise-sleeping-right-two" src="assets/img/blastoise/sleeping/tile001.png"/>
+  <img id="blastoise-sleeping-right-three" src="assets/img/blastoise/sleeping/tile002.png"/>
+
+
+  <img id="bulbasaur-dead-down-one" src="assets/img/bulbasaur/walking/tile012.png"/>
+  <img id="bulbasaur-walking-down-one" src="assets/img/bulbasaur/walking/tile000.png"/>
+  <img id="bulbasaur-walking-down-two" src="assets/img/bulbasaur/walking/tile001.png"/>
+  <img id="bulbasaur-walking-down-three" src="assets/img/bulbasaur/walking/tile002.png"/>
+  <img id="bulbasaur-walking-up-one" src="assets/img/bulbasaur/walking/tile003.png"/>
+  <img id="bulbasaur-walking-up-two" src="assets/img/bulbasaur/walking/tile004.png"/>
+  <img id="bulbasaur-walking-up-three" src="assets/img/bulbasaur/walking/tile005.png"/>
+  <img id="bulbasaur-walking-left-one" src="assets/img/bulbasaur/walking/tile006.png"/>
+  <img id="bulbasaur-walking-left-two" src="assets/img/bulbasaur/walking/tile007.png"/>
+  <img id="bulbasaur-walking-left-three" src="assets/img/bulbasaur/walking/tile008.png"/>
+  <img id="bulbasaur-walking-right-one" src="assets/img/bulbasaur/walking/tile009.png"/>
+  <img id="bulbasaur-walking-right-two" src="assets/img/bulbasaur/walking/tile010.png"/>
+  <img id="bulbasaur-walking-right-three" src="assets/img/bulbasaur/walking/tile011.png"/>
+  <img id="bulbasaur-attacking-down-one" src="assets/img/bulbasaur/attacking/tile000.png"/>
+  <img id="bulbasaur-attacking-down-two" src="assets/img/bulbasaur/attacking/tile001.png"/>
+  <img id="bulbasaur-attacking-down-three" src="assets/img/bulbasaur/attacking/tile002.png"/>
+  <img id="bulbasaur-attacking-up-one" src="assets/img/bulbasaur/attacking/tile003.png"/>
+  <img id="bulbasaur-attacking-up-two" src="assets/img/bulbasaur/attacking/tile004.png"/>
+  <img id="bulbasaur-attacking-up-three" src="assets/img/bulbasaur/attacking/tile005.png"/>
+  <img id="bulbasaur-attacking-left-one" src="assets/img/bulbasaur/attacking/tile006.png"/>
+  <img id="bulbasaur-attacking-left-two" src="assets/img/bulbasaur/attacking/tile007.png"/>
+  <img id="bulbasaur-attacking-left-three" src="assets/img/bulbasaur/attacking/tile008.png"/>
+  <img id="bulbasaur-attacking-right-one" src="assets/img/bulbasaur/attacking/tile009.png"/>
+  <img id="bulbasaur-attacking-right-two" src="assets/img/bulbasaur/attacking/tile010.png"/>
+  <img id="bulbasaur-attacking-right-three" src="assets/img/bulbasaur/attacking/tile011.png"/>
+  <img id="bulbasaur-sleeping-down-one" src="assets/img/bulbasaur/sleeping/tile000.png"/>
+  <img id="bulbasaur-sleeping-down-two" src="assets/img/bulbasaur/sleeping/tile001.png"/>
+  <img id="bulbasaur-sleeping-down-three" src="assets/img/bulbasaur/sleeping/tile002.png"/>
+  <img id="bulbasaur-sleeping-up-one" src="assets/img/bulbasaur/sleeping/tile000.png"/>
+  <img id="bulbasaur-sleeping-up-two" src="assets/img/bulbasaur/sleeping/tile001.png"/>
+  <img id="bulbasaur-sleeping-up-three" src="assets/img/bulbasaur/sleeping/tile002.png"/>
+  <img id="bulbasaur-sleeping-left-one" src="assets/img/bulbasaur/sleeping/tile000.png"/>
+  <img id="bulbasaur-sleeping-left-two" src="assets/img/bulbasaur/sleeping/tile001.png"/>
+  <img id="bulbasaur-sleeping-left-three" src="assets/img/bulbasaur/sleeping/tile002.png"/>
+  <img id="bulbasaur-sleeping-right-one" src="assets/img/bulbasaur/sleeping/tile000.png"/>
+  <img id="bulbasaur-sleeping-right-two" src="assets/img/bulbasaur/sleeping/tile001.png"/>
+  <img id="bulbasaur-sleeping-right-three" src="assets/img/bulbasaur/sleeping/tile002.png"/>
+
+  <img id="butterfree-dead-down-one" src="assets/img/butterfree/walking/tile012.png"/>
+  <img id="butterfree-walking-down-one" src="assets/img/butterfree/walking/tile000.png"/>
+  <img id="butterfree-walking-down-two" src="assets/img/butterfree/walking/tile001.png"/>
+  <img id="butterfree-walking-down-three" src="assets/img/butterfree/walking/tile002.png"/>
+  <img id="butterfree-walking-up-one" src="assets/img/butterfree/walking/tile003.png"/>
+  <img id="butterfree-walking-up-two" src="assets/img/butterfree/walking/tile004.png"/>
+  <img id="butterfree-walking-up-three" src="assets/img/butterfree/walking/tile005.png"/>
+  <img id="butterfree-walking-left-one" src="assets/img/butterfree/walking/tile006.png"/>
+  <img id="butterfree-walking-left-two" src="assets/img/butterfree/walking/tile007.png"/>
+  <img id="butterfree-walking-left-three" src="assets/img/butterfree/walking/tile008.png"/>
+  <img id="butterfree-walking-right-one" src="assets/img/butterfree/walking/tile009.png"/>
+  <img id="butterfree-walking-right-two" src="assets/img/butterfree/walking/tile010.png"/>
+  <img id="butterfree-walking-right-three" src="assets/img/butterfree/walking/tile011.png"/>
+  <img id="butterfree-attacking-down-one" src="assets/img/butterfree/attacking/tile000.png"/>
+  <img id="butterfree-attacking-down-two" src="assets/img/butterfree/attacking/tile001.png"/>
+  <img id="butterfree-attacking-down-three" src="assets/img/butterfree/attacking/tile002.png"/>
+  <img id="butterfree-attacking-up-one" src="assets/img/butterfree/attacking/tile003.png"/>
+  <img id="butterfree-attacking-up-two" src="assets/img/butterfree/attacking/tile004.png"/>
+  <img id="butterfree-attacking-up-three" src="assets/img/butterfree/attacking/tile005.png"/>
+  <img id="butterfree-attacking-left-one" src="assets/img/butterfree/attacking/tile006.png"/>
+  <img id="butterfree-attacking-left-two" src="assets/img/butterfree/attacking/tile007.png"/>
+  <img id="butterfree-attacking-left-three" src="assets/img/butterfree/attacking/tile008.png"/>
+  <img id="butterfree-attacking-right-one" src="assets/img/butterfree/attacking/tile009.png"/>
+  <img id="butterfree-attacking-right-two" src="assets/img/butterfree/attacking/tile010.png"/>
+  <img id="butterfree-attacking-right-three" src="assets/img/butterfree/attacking/tile011.png"/>
+  <img id="butterfree-sleeping-down-one" src="assets/img/butterfree/sleeping/tile000.png"/>
+  <img id="butterfree-sleeping-down-two" src="assets/img/butterfree/sleeping/tile001.png"/>
+  <img id="butterfree-sleeping-down-three" src="assets/img/butterfree/sleeping/tile002.png"/>
+  <img id="butterfree-sleeping-up-one" src="assets/img/butterfree/sleeping/tile000.png"/>
+  <img id="butterfree-sleeping-up-two" src="assets/img/butterfree/sleeping/tile001.png"/>
+  <img id="butterfree-sleeping-up-three" src="assets/img/butterfree/sleeping/tile002.png"/>
+  <img id="butterfree-sleeping-left-one" src="assets/img/butterfree/sleeping/tile000.png"/>
+  <img id="butterfree-sleeping-left-two" src="assets/img/butterfree/sleeping/tile001.png"/>
+  <img id="butterfree-sleeping-left-three" src="assets/img/butterfree/sleeping/tile002.png"/>
+  <img id="butterfree-sleeping-right-one" src="assets/img/butterfree/sleeping/tile000.png"/>
+  <img id="butterfree-sleeping-right-two" src="assets/img/butterfree/sleeping/tile001.png"/>
+  <img id="butterfree-sleeping-right-three" src="assets/img/butterfree/sleeping/tile002.png"/>
+
+
+  <img id="charizard-dead-down-one" src="assets/img/charizard/walking/tile012.png"/>
+  <img id="charizard-walking-down-one" src="assets/img/charizard/walking/tile000.png"/>
+  <img id="charizard-walking-down-two" src="assets/img/charizard/walking/tile001.png"/>
+  <img id="charizard-walking-down-three" src="assets/img/charizard/walking/tile002.png"/>
+  <img id="charizard-walking-up-one" src="assets/img/charizard/walking/tile003.png"/>
+  <img id="charizard-walking-up-two" src="assets/img/charizard/walking/tile004.png"/>
+  <img id="charizard-walking-up-three" src="assets/img/charizard/walking/tile005.png"/>
+  <img id="charizard-walking-left-one" src="assets/img/charizard/walking/tile006.png"/>
+  <img id="charizard-walking-left-two" src="assets/img/charizard/walking/tile007.png"/>
+  <img id="charizard-walking-left-three" src="assets/img/charizard/walking/tile008.png"/>
+  <img id="charizard-walking-right-one" src="assets/img/charizard/walking/tile009.png"/>
+  <img id="charizard-walking-right-two" src="assets/img/charizard/walking/tile010.png"/>
+  <img id="charizard-walking-right-three" src="assets/img/charizard/walking/tile011.png"/>
+  <img id="charizard-attacking-down-one" src="assets/img/charizard/attacking/tile000.png"/>
+  <img id="charizard-attacking-down-two" src="assets/img/charizard/attacking/tile001.png"/>
+  <img id="charizard-attacking-down-three" src="assets/img/charizard/attacking/tile002.png"/>
+  <img id="charizard-attacking-up-one" src="assets/img/charizard/attacking/tile003.png"/>
+  <img id="charizard-attacking-up-two" src="assets/img/charizard/attacking/tile004.png"/>
+  <img id="charizard-attacking-up-three" src="assets/img/charizard/attacking/tile005.png"/>
+  <img id="charizard-attacking-left-one" src="assets/img/charizard/attacking/tile006.png"/>
+  <img id="charizard-attacking-left-two" src="assets/img/charizard/attacking/tile007.png"/>
+  <img id="charizard-attacking-left-three" src="assets/img/charizard/attacking/tile008.png"/>
+  <img id="charizard-attacking-right-one" src="assets/img/charizard/attacking/tile009.png"/>
+  <img id="charizard-attacking-right-two" src="assets/img/charizard/attacking/tile010.png"/>
+  <img id="charizard-attacking-right-three" src="assets/img/charizard/attacking/tile011.png"/>
+  <img id="charizard-sleeping-down-one" src="assets/img/charizard/sleeping/tile000.png"/>
+  <img id="charizard-sleeping-down-two" src="assets/img/charizard/sleeping/tile001.png"/>
+  <img id="charizard-sleeping-down-three" src="assets/img/charizard/sleeping/tile002.png"/>
+  <img id="charizard-sleeping-up-one" src="assets/img/charizard/sleeping/tile000.png"/>
+  <img id="charizard-sleeping-up-two" src="assets/img/charizard/sleeping/tile001.png"/>
+  <img id="charizard-sleeping-up-three" src="assets/img/charizard/sleeping/tile002.png"/>
+  <img id="charizard-sleeping-left-one" src="assets/img/charizard/sleeping/tile000.png"/>
+  <img id="charizard-sleeping-left-two" src="assets/img/charizard/sleeping/tile001.png"/>
+  <img id="charizard-sleeping-left-three" src="assets/img/charizard/sleeping/tile002.png"/>
+  <img id="charizard-sleeping-right-one" src="assets/img/charizard/sleeping/tile000.png"/>
+  <img id="charizard-sleeping-right-two" src="assets/img/charizard/sleeping/tile001.png"/>
+  <img id="charizard-sleeping-right-three" src="assets/img/charizard/sleeping/tile002.png"/>
+
+  <img id="charmander-dead-down-one" src="assets/img/charmander/walking/tile012.png"/>
+  <img id="charmander-walking-down-one" src="assets/img/charmander/walking/tile000.png"/>
+  <img id="charmander-walking-down-two" src="assets/img/charmander/walking/tile001.png"/>
+  <img id="charmander-walking-down-three" src="assets/img/charmander/walking/tile002.png"/>
+  <img id="charmander-walking-up-one" src="assets/img/charmander/walking/tile003.png"/>
+  <img id="charmander-walking-up-two" src="assets/img/charmander/walking/tile004.png"/>
+  <img id="charmander-walking-up-three" src="assets/img/charmander/walking/tile005.png"/>
+  <img id="charmander-walking-left-one" src="assets/img/charmander/walking/tile006.png"/>
+  <img id="charmander-walking-left-two" src="assets/img/charmander/walking/tile007.png"/>
+  <img id="charmander-walking-left-three" src="assets/img/charmander/walking/tile008.png"/>
+  <img id="charmander-walking-right-one" src="assets/img/charmander/walking/tile009.png"/>
+  <img id="charmander-walking-right-two" src="assets/img/charmander/walking/tile010.png"/>
+  <img id="charmander-walking-right-three" src="assets/img/charmander/walking/tile011.png"/>
+  <img id="charmander-attacking-down-one" src="assets/img/charmander/attacking/tile000.png"/>
+  <img id="charmander-attacking-down-two" src="assets/img/charmander/attacking/tile001.png"/>
+  <img id="charmander-attacking-down-three" src="assets/img/charmander/attacking/tile002.png"/>
+  <img id="charmander-attacking-up-one" src="assets/img/charmander/attacking/tile003.png"/>
+  <img id="charmander-attacking-up-two" src="assets/img/charmander/attacking/tile004.png"/>
+  <img id="charmander-attacking-up-three" src="assets/img/charmander/attacking/tile005.png"/>
+  <img id="charmander-attacking-left-one" src="assets/img/charmander/attacking/tile006.png"/>
+  <img id="charmander-attacking-left-two" src="assets/img/charmander/attacking/tile007.png"/>
+  <img id="charmander-attacking-left-three" src="assets/img/charmander/attacking/tile008.png"/>
+  <img id="charmander-attacking-right-one" src="assets/img/charmander/attacking/tile009.png"/>
+  <img id="charmander-attacking-right-two" src="assets/img/charmander/attacking/tile010.png"/>
+  <img id="charmander-attacking-right-three" src="assets/img/charmander/attacking/tile011.png"/>
+  <img id="charmander-sleeping-down-one" src="assets/img/charmander/sleeping/tile000.png"/>
+  <img id="charmander-sleeping-down-two" src="assets/img/charmander/sleeping/tile001.png"/>
+  <img id="charmander-sleeping-down-three" src="assets/img/charmander/sleeping/tile002.png"/>
+  <img id="charmander-sleeping-up-one" src="assets/img/charmander/sleeping/tile000.png"/>
+  <img id="charmander-sleeping-up-two" src="assets/img/charmander/sleeping/tile001.png"/>
+  <img id="charmander-sleeping-up-three" src="assets/img/charmander/sleeping/tile002.png"/>
+  <img id="charmander-sleeping-left-one" src="assets/img/charmander/sleeping/tile000.png"/>
+  <img id="charmander-sleeping-left-two" src="assets/img/charmander/sleeping/tile001.png"/>
+  <img id="charmander-sleeping-left-three" src="assets/img/charmander/sleeping/tile002.png"/>
+  <img id="charmander-sleeping-right-one" src="assets/img/charmander/sleeping/tile000.png"/>
+  <img id="charmander-sleeping-right-two" src="assets/img/charmander/sleeping/tile001.png"/>
+  <img id="charmander-sleeping-right-three" src="assets/img/charmander/sleeping/tile002.png"/>
+
+  <img id="charmeleon-dead-down-one" src="assets/img/charmeleon/walking/tile012.png"/>
+  <img id="charmeleon-walking-down-one" src="assets/img/charmeleon/walking/tile000.png"/>
+  <img id="charmeleon-walking-down-two" src="assets/img/charmeleon/walking/tile001.png"/>
+  <img id="charmeleon-walking-down-three" src="assets/img/charmeleon/walking/tile002.png"/>
+  <img id="charmeleon-walking-up-one" src="assets/img/charmeleon/walking/tile003.png"/>
+  <img id="charmeleon-walking-up-two" src="assets/img/charmeleon/walking/tile004.png"/>
+  <img id="charmeleon-walking-up-three" src="assets/img/charmeleon/walking/tile005.png"/>
+  <img id="charmeleon-walking-left-one" src="assets/img/charmeleon/walking/tile006.png"/>
+  <img id="charmeleon-walking-left-two" src="assets/img/charmeleon/walking/tile007.png"/>
+  <img id="charmeleon-walking-left-three" src="assets/img/charmeleon/walking/tile008.png"/>
+  <img id="charmeleon-walking-right-one" src="assets/img/charmeleon/walking/tile009.png"/>
+  <img id="charmeleon-walking-right-two" src="assets/img/charmeleon/walking/tile010.png"/>
+  <img id="charmeleon-walking-right-three" src="assets/img/charmeleon/walking/tile011.png"/>
+  <img id="charmeleon-attacking-down-one" src="assets/img/charmeleon/attacking/tile000.png"/>
+  <img id="charmeleon-attacking-down-two" src="assets/img/charmeleon/attacking/tile001.png"/>
+  <img id="charmeleon-attacking-down-three" src="assets/img/charmeleon/attacking/tile002.png"/>
+  <img id="charmeleon-attacking-up-one" src="assets/img/charmeleon/attacking/tile003.png"/>
+  <img id="charmeleon-attacking-up-two" src="assets/img/charmeleon/attacking/tile004.png"/>
+  <img id="charmeleon-attacking-up-three" src="assets/img/charmeleon/attacking/tile005.png"/>
+  <img id="charmeleon-attacking-left-one" src="assets/img/charmeleon/attacking/tile006.png"/>
+  <img id="charmeleon-attacking-left-two" src="assets/img/charmeleon/attacking/tile007.png"/>
+  <img id="charmeleon-attacking-left-three" src="assets/img/charmeleon/attacking/tile008.png"/>
+  <img id="charmeleon-attacking-right-one" src="assets/img/charmeleon/attacking/tile009.png"/>
+  <img id="charmeleon-attacking-right-two" src="assets/img/charmeleon/attacking/tile010.png"/>
+  <img id="charmeleon-attacking-right-three" src="assets/img/charmeleon/attacking/tile011.png"/>
+  <img id="charmeleon-sleeping-down-one" src="assets/img/charmeleon/sleeping/tile000.png"/>
+  <img id="charmeleon-sleeping-down-two" src="assets/img/charmeleon/sleeping/tile001.png"/>
+  <img id="charmeleon-sleeping-down-three" src="assets/img/charmeleon/sleeping/tile002.png"/>
+  <img id="charmeleon-sleeping-up-one" src="assets/img/charmeleon/sleeping/tile000.png"/>
+  <img id="charmeleon-sleeping-up-two" src="assets/img/charmeleon/sleeping/tile001.png"/>
+  <img id="charmeleon-sleeping-up-three" src="assets/img/charmeleon/sleeping/tile002.png"/>
+  <img id="charmeleon-sleeping-left-one" src="assets/img/charmeleon/sleeping/tile000.png"/>
+  <img id="charmeleon-sleeping-left-two" src="assets/img/charmeleon/sleeping/tile001.png"/>
+  <img id="charmeleon-sleeping-left-three" src="assets/img/charmeleon/sleeping/tile002.png"/>
+  <img id="charmeleon-sleeping-right-one" src="assets/img/charmeleon/sleeping/tile000.png"/>
+  <img id="charmeleon-sleeping-right-two" src="assets/img/charmeleon/sleeping/tile001.png"/>
+  <img id="charmeleon-sleeping-right-three" src="assets/img/charmeleon/sleeping/tile002.png"/>
+
+
+  <img id="cubone-dead-down-one" src="assets/img/cubone/walking/tile012.png"/>
+  <img id="cubone-walking-down-one" src="assets/img/cubone/walking/tile000.png"/>
+  <img id="cubone-walking-down-two" src="assets/img/cubone/walking/tile001.png"/>
+  <img id="cubone-walking-down-three" src="assets/img/cubone/walking/tile002.png"/>
+  <img id="cubone-walking-up-one" src="assets/img/cubone/walking/tile003.png"/>
+  <img id="cubone-walking-up-two" src="assets/img/cubone/walking/tile004.png"/>
+  <img id="cubone-walking-up-three" src="assets/img/cubone/walking/tile005.png"/>
+  <img id="cubone-walking-left-one" src="assets/img/cubone/walking/tile006.png"/>
+  <img id="cubone-walking-left-two" src="assets/img/cubone/walking/tile007.png"/>
+  <img id="cubone-walking-left-three" src="assets/img/cubone/walking/tile008.png"/>
+  <img id="cubone-walking-right-one" src="assets/img/cubone/walking/tile009.png"/>
+  <img id="cubone-walking-right-two" src="assets/img/cubone/walking/tile010.png"/>
+  <img id="cubone-walking-right-three" src="assets/img/cubone/walking/tile011.png"/>
+  <img id="cubone-attacking-down-one" src="assets/img/cubone/attacking/tile000.png"/>
+  <img id="cubone-attacking-down-two" src="assets/img/cubone/attacking/tile001.png"/>
+  <img id="cubone-attacking-down-three" src="assets/img/cubone/attacking/tile002.png"/>
+  <img id="cubone-attacking-up-one" src="assets/img/cubone/attacking/tile003.png"/>
+  <img id="cubone-attacking-up-two" src="assets/img/cubone/attacking/tile004.png"/>
+  <img id="cubone-attacking-up-three" src="assets/img/cubone/attacking/tile005.png"/>
+  <img id="cubone-attacking-left-one" src="assets/img/cubone/attacking/tile006.png"/>
+  <img id="cubone-attacking-left-two" src="assets/img/cubone/attacking/tile007.png"/>
+  <img id="cubone-attacking-left-three" src="assets/img/cubone/attacking/tile008.png"/>
+  <img id="cubone-attacking-right-one" src="assets/img/cubone/attacking/tile009.png"/>
+  <img id="cubone-attacking-right-two" src="assets/img/cubone/attacking/tile010.png"/>
+  <img id="cubone-attacking-right-three" src="assets/img/cubone/attacking/tile011.png"/>
+  <img id="cubone-sleeping-down-one" src="assets/img/cubone/sleeping/tile000.png"/>
+  <img id="cubone-sleeping-down-two" src="assets/img/cubone/sleeping/tile001.png"/>
+  <img id="cubone-sleeping-down-three" src="assets/img/cubone/sleeping/tile002.png"/>
+  <img id="cubone-sleeping-up-one" src="assets/img/cubone/sleeping/tile000.png"/>
+  <img id="cubone-sleeping-up-two" src="assets/img/cubone/sleeping/tile001.png"/>
+  <img id="cubone-sleeping-up-three" src="assets/img/cubone/sleeping/tile002.png"/>
+  <img id="cubone-sleeping-left-one" src="assets/img/cubone/sleeping/tile000.png"/>
+  <img id="cubone-sleeping-left-two" src="assets/img/cubone/sleeping/tile001.png"/>
+  <img id="cubone-sleeping-left-three" src="assets/img/cubone/sleeping/tile002.png"/>
+  <img id="cubone-sleeping-right-one" src="assets/img/cubone/sleeping/tile000.png"/>
+  <img id="cubone-sleeping-right-two" src="assets/img/cubone/sleeping/tile001.png"/>
+  <img id="cubone-sleeping-right-three" src="assets/img/cubone/sleeping/tile002.png"/>
+
+  <img id="geodude-dead-down-one" src="assets/img/geodude/walking/tile012.png"/>
+  <img id="geodude-walking-down-one" src="assets/img/geodude/walking/tile000.png"/>
+  <img id="geodude-walking-down-two" src="assets/img/geodude/walking/tile001.png"/>
+  <img id="geodude-walking-down-three" src="assets/img/geodude/walking/tile002.png"/>
+  <img id="geodude-walking-up-one" src="assets/img/geodude/walking/tile003.png"/>
+  <img id="geodude-walking-up-two" src="assets/img/geodude/walking/tile004.png"/>
+  <img id="geodude-walking-up-three" src="assets/img/geodude/walking/tile005.png"/>
+  <img id="geodude-walking-left-one" src="assets/img/geodude/walking/tile006.png"/>
+  <img id="geodude-walking-left-two" src="assets/img/geodude/walking/tile007.png"/>
+  <img id="geodude-walking-left-three" src="assets/img/geodude/walking/tile008.png"/>
+  <img id="geodude-walking-right-one" src="assets/img/geodude/walking/tile009.png"/>
+  <img id="geodude-walking-right-two" src="assets/img/geodude/walking/tile010.png"/>
+  <img id="geodude-walking-right-three" src="assets/img/geodude/walking/tile011.png"/>
+  <img id="geodude-attacking-down-one" src="assets/img/geodude/attacking/tile000.png"/>
+  <img id="geodude-attacking-down-two" src="assets/img/geodude/attacking/tile001.png"/>
+  <img id="geodude-attacking-down-three" src="assets/img/geodude/attacking/tile002.png"/>
+  <img id="geodude-attacking-up-one" src="assets/img/geodude/attacking/tile003.png"/>
+  <img id="geodude-attacking-up-two" src="assets/img/geodude/attacking/tile004.png"/>
+  <img id="geodude-attacking-up-three" src="assets/img/geodude/attacking/tile005.png"/>
+  <img id="geodude-attacking-left-one" src="assets/img/geodude/attacking/tile006.png"/>
+  <img id="geodude-attacking-left-two" src="assets/img/geodude/attacking/tile007.png"/>
+  <img id="geodude-attacking-left-three" src="assets/img/geodude/attacking/tile008.png"/>
+  <img id="geodude-attacking-right-one" src="assets/img/geodude/attacking/tile009.png"/>
+  <img id="geodude-attacking-right-two" src="assets/img/geodude/attacking/tile010.png"/>
+  <img id="geodude-attacking-right-three" src="assets/img/geodude/attacking/tile011.png"/>
+  <img id="geodude-sleeping-down-one" src="assets/img/geodude/sleeping/tile000.png"/>
+  <img id="geodude-sleeping-down-two" src="assets/img/geodude/sleeping/tile001.png"/>
+  <img id="geodude-sleeping-down-three" src="assets/img/geodude/sleeping/tile002.png"/>
+  <img id="geodude-sleeping-up-one" src="assets/img/geodude/sleeping/tile000.png"/>
+  <img id="geodude-sleeping-up-two" src="assets/img/geodude/sleeping/tile001.png"/>
+  <img id="geodude-sleeping-up-three" src="assets/img/geodude/sleeping/tile002.png"/>
+  <img id="geodude-sleeping-left-one" src="assets/img/geodude/sleeping/tile000.png"/>
+  <img id="geodude-sleeping-left-two" src="assets/img/geodude/sleeping/tile001.png"/>
+  <img id="geodude-sleeping-left-three" src="assets/img/geodude/sleeping/tile002.png"/>
+  <img id="geodude-sleeping-right-one" src="assets/img/geodude/sleeping/tile000.png"/>
+  <img id="geodude-sleeping-right-two" src="assets/img/geodude/sleeping/tile001.png"/>
+  <img id="geodude-sleeping-right-three" src="assets/img/geodude/sleeping/tile002.png"/>
+
+  <img id="gloom-dead-down-one" src="assets/img/gloom/walking/tile012.png"/>
+  <img id="gloom-walking-down-one" src="assets/img/gloom/walking/tile000.png"/>
+  <img id="gloom-walking-down-two" src="assets/img/gloom/walking/tile001.png"/>
+  <img id="gloom-walking-down-three" src="assets/img/gloom/walking/tile002.png"/>
+  <img id="gloom-walking-up-one" src="assets/img/gloom/walking/tile003.png"/>
+  <img id="gloom-walking-up-two" src="assets/img/gloom/walking/tile004.png"/>
+  <img id="gloom-walking-up-three" src="assets/img/gloom/walking/tile005.png"/>
+  <img id="gloom-walking-left-one" src="assets/img/gloom/walking/tile006.png"/>
+  <img id="gloom-walking-left-two" src="assets/img/gloom/walking/tile007.png"/>
+  <img id="gloom-walking-left-three" src="assets/img/gloom/walking/tile008.png"/>
+  <img id="gloom-walking-right-one" src="assets/img/gloom/walking/tile009.png"/>
+  <img id="gloom-walking-right-two" src="assets/img/gloom/walking/tile010.png"/>
+  <img id="gloom-walking-right-three" src="assets/img/gloom/walking/tile011.png"/>
+  <img id="gloom-attacking-down-one" src="assets/img/gloom/attacking/tile000.png"/>
+  <img id="gloom-attacking-down-two" src="assets/img/gloom/attacking/tile001.png"/>
+  <img id="gloom-attacking-down-three" src="assets/img/gloom/attacking/tile002.png"/>
+  <img id="gloom-attacking-up-one" src="assets/img/gloom/attacking/tile003.png"/>
+  <img id="gloom-attacking-up-two" src="assets/img/gloom/attacking/tile004.png"/>
+  <img id="gloom-attacking-up-three" src="assets/img/gloom/attacking/tile005.png"/>
+  <img id="gloom-attacking-left-one" src="assets/img/gloom/attacking/tile006.png"/>
+  <img id="gloom-attacking-left-two" src="assets/img/gloom/attacking/tile007.png"/>
+  <img id="gloom-attacking-left-three" src="assets/img/gloom/attacking/tile008.png"/>
+  <img id="gloom-attacking-right-one" src="assets/img/gloom/attacking/tile009.png"/>
+  <img id="gloom-attacking-right-two" src="assets/img/gloom/attacking/tile010.png"/>
+  <img id="gloom-attacking-right-three" src="assets/img/gloom/attacking/tile011.png"/>
+  <img id="gloom-sleeping-down-one" src="assets/img/gloom/sleeping/tile000.png"/>
+  <img id="gloom-sleeping-down-two" src="assets/img/gloom/sleeping/tile001.png"/>
+  <img id="gloom-sleeping-down-three" src="assets/img/gloom/sleeping/tile002.png"/>
+  <img id="gloom-sleeping-up-one" src="assets/img/gloom/sleeping/tile000.png"/>
+  <img id="gloom-sleeping-up-two" src="assets/img/gloom/sleeping/tile001.png"/>
+  <img id="gloom-sleeping-up-three" src="assets/img/gloom/sleeping/tile002.png"/>
+  <img id="gloom-sleeping-left-one" src="assets/img/gloom/sleeping/tile000.png"/>
+  <img id="gloom-sleeping-left-two" src="assets/img/gloom/sleeping/tile001.png"/>
+  <img id="gloom-sleeping-left-three" src="assets/img/gloom/sleeping/tile002.png"/>
+  <img id="gloom-sleeping-right-one" src="assets/img/gloom/sleeping/tile000.png"/>
+  <img id="gloom-sleeping-right-two" src="assets/img/gloom/sleeping/tile001.png"/>
+  <img id="gloom-sleeping-right-three" src="assets/img/gloom/sleeping/tile002.png"/>
+
+
+  <img id="golbat-dead-down-one" src="assets/img/golbat/walking/tile012.png"/>
+  <img id="golbat-walking-down-one" src="assets/img/golbat/walking/tile000.png"/>
+  <img id="golbat-walking-down-two" src="assets/img/golbat/walking/tile001.png"/>
+  <img id="golbat-walking-down-three" src="assets/img/golbat/walking/tile002.png"/>
+  <img id="golbat-walking-up-one" src="assets/img/golbat/walking/tile003.png"/>
+  <img id="golbat-walking-up-two" src="assets/img/golbat/walking/tile004.png"/>
+  <img id="golbat-walking-up-three" src="assets/img/golbat/walking/tile005.png"/>
+  <img id="golbat-walking-left-one" src="assets/img/golbat/walking/tile006.png"/>
+  <img id="golbat-walking-left-two" src="assets/img/golbat/walking/tile007.png"/>
+  <img id="golbat-walking-left-three" src="assets/img/golbat/walking/tile008.png"/>
+  <img id="golbat-walking-right-one" src="assets/img/golbat/walking/tile009.png"/>
+  <img id="golbat-walking-right-two" src="assets/img/golbat/walking/tile010.png"/>
+  <img id="golbat-walking-right-three" src="assets/img/golbat/walking/tile011.png"/>
+  <img id="golbat-attacking-down-one" src="assets/img/golbat/attacking/tile000.png"/>
+  <img id="golbat-attacking-down-two" src="assets/img/golbat/attacking/tile001.png"/>
+  <img id="golbat-attacking-down-three" src="assets/img/golbat/attacking/tile002.png"/>
+  <img id="golbat-attacking-up-one" src="assets/img/golbat/attacking/tile003.png"/>
+  <img id="golbat-attacking-up-two" src="assets/img/golbat/attacking/tile004.png"/>
+  <img id="golbat-attacking-up-three" src="assets/img/golbat/attacking/tile005.png"/>
+  <img id="golbat-attacking-left-one" src="assets/img/golbat/attacking/tile006.png"/>
+  <img id="golbat-attacking-left-two" src="assets/img/golbat/attacking/tile007.png"/>
+  <img id="golbat-attacking-left-three" src="assets/img/golbat/attacking/tile008.png"/>
+  <img id="golbat-attacking-right-one" src="assets/img/golbat/attacking/tile009.png"/>
+  <img id="golbat-attacking-right-two" src="assets/img/golbat/attacking/tile010.png"/>
+  <img id="golbat-attacking-right-three" src="assets/img/golbat/attacking/tile011.png"/>
+  <img id="golbat-sleeping-down-one" src="assets/img/golbat/sleeping/tile000.png"/>
+  <img id="golbat-sleeping-down-two" src="assets/img/golbat/sleeping/tile001.png"/>
+  <img id="golbat-sleeping-down-three" src="assets/img/golbat/sleeping/tile002.png"/>
+  <img id="golbat-sleeping-up-one" src="assets/img/golbat/sleeping/tile000.png"/>
+  <img id="golbat-sleeping-up-two" src="assets/img/golbat/sleeping/tile001.png"/>
+  <img id="golbat-sleeping-up-three" src="assets/img/golbat/sleeping/tile002.png"/>
+  <img id="golbat-sleeping-left-one" src="assets/img/golbat/sleeping/tile000.png"/>
+  <img id="golbat-sleeping-left-two" src="assets/img/golbat/sleeping/tile001.png"/>
+  <img id="golbat-sleeping-left-three" src="assets/img/golbat/sleeping/tile002.png"/>
+  <img id="golbat-sleeping-right-one" src="assets/img/golbat/sleeping/tile000.png"/>
+  <img id="golbat-sleeping-right-two" src="assets/img/golbat/sleeping/tile001.png"/>
+  <img id="golbat-sleeping-right-three" src="assets/img/golbat/sleeping/tile002.png"/>
+
+  <img id="golem-dead-down-one" src="assets/img/golem/walking/tile012.png"/>
+  <img id="golem-walking-down-one" src="assets/img/golem/walking/tile000.png"/>
+  <img id="golem-walking-down-two" src="assets/img/golem/walking/tile001.png"/>
+  <img id="golem-walking-down-three" src="assets/img/golem/walking/tile002.png"/>
+  <img id="golem-walking-up-one" src="assets/img/golem/walking/tile003.png"/>
+  <img id="golem-walking-up-two" src="assets/img/golem/walking/tile004.png"/>
+  <img id="golem-walking-up-three" src="assets/img/golem/walking/tile005.png"/>
+  <img id="golem-walking-left-one" src="assets/img/golem/walking/tile006.png"/>
+  <img id="golem-walking-left-two" src="assets/img/golem/walking/tile007.png"/>
+  <img id="golem-walking-left-three" src="assets/img/golem/walking/tile008.png"/>
+  <img id="golem-walking-right-one" src="assets/img/golem/walking/tile009.png"/>
+  <img id="golem-walking-right-two" src="assets/img/golem/walking/tile010.png"/>
+  <img id="golem-walking-right-three" src="assets/img/golem/walking/tile011.png"/>
+  <img id="golem-attacking-down-one" src="assets/img/golem/attacking/tile000.png"/>
+  <img id="golem-attacking-down-two" src="assets/img/golem/attacking/tile001.png"/>
+  <img id="golem-attacking-down-three" src="assets/img/golem/attacking/tile002.png"/>
+  <img id="golem-attacking-up-one" src="assets/img/golem/attacking/tile003.png"/>
+  <img id="golem-attacking-up-two" src="assets/img/golem/attacking/tile004.png"/>
+  <img id="golem-attacking-up-three" src="assets/img/golem/attacking/tile005.png"/>
+  <img id="golem-attacking-left-one" src="assets/img/golem/attacking/tile006.png"/>
+  <img id="golem-attacking-left-two" src="assets/img/golem/attacking/tile007.png"/>
+  <img id="golem-attacking-left-three" src="assets/img/golem/attacking/tile008.png"/>
+  <img id="golem-attacking-right-one" src="assets/img/golem/attacking/tile009.png"/>
+  <img id="golem-attacking-right-two" src="assets/img/golem/attacking/tile010.png"/>
+  <img id="golem-attacking-right-three" src="assets/img/golem/attacking/tile011.png"/>
+  <img id="golem-sleeping-down-one" src="assets/img/golem/sleeping/tile000.png"/>
+  <img id="golem-sleeping-down-two" src="assets/img/golem/sleeping/tile001.png"/>
+  <img id="golem-sleeping-down-three" src="assets/img/golem/sleeping/tile002.png"/>
+  <img id="golem-sleeping-up-one" src="assets/img/golem/sleeping/tile000.png"/>
+  <img id="golem-sleeping-up-two" src="assets/img/golem/sleeping/tile001.png"/>
+  <img id="golem-sleeping-up-three" src="assets/img/golem/sleeping/tile002.png"/>
+  <img id="golem-sleeping-left-one" src="assets/img/golem/sleeping/tile000.png"/>
+  <img id="golem-sleeping-left-two" src="assets/img/golem/sleeping/tile001.png"/>
+  <img id="golem-sleeping-left-three" src="assets/img/golem/sleeping/tile002.png"/>
+  <img id="golem-sleeping-right-one" src="assets/img/golem/sleeping/tile000.png"/>
+  <img id="golem-sleeping-right-two" src="assets/img/golem/sleeping/tile001.png"/>
+  <img id="golem-sleeping-right-three" src="assets/img/golem/sleeping/tile002.png"/>
+
+
+  <img id="graveler-dead-down-one" src="assets/img/graveler/walking/tile012.png"/>
+  <img id="graveler-walking-down-one" src="assets/img/graveler/walking/tile000.png"/>
+  <img id="graveler-walking-down-two" src="assets/img/graveler/walking/tile001.png"/>
+  <img id="graveler-walking-down-three" src="assets/img/graveler/walking/tile002.png"/>
+  <img id="graveler-walking-up-one" src="assets/img/graveler/walking/tile003.png"/>
+  <img id="graveler-walking-up-two" src="assets/img/graveler/walking/tile004.png"/>
+  <img id="graveler-walking-up-three" src="assets/img/graveler/walking/tile005.png"/>
+  <img id="graveler-walking-left-one" src="assets/img/graveler/walking/tile006.png"/>
+  <img id="graveler-walking-left-two" src="assets/img/graveler/walking/tile007.png"/>
+  <img id="graveler-walking-left-three" src="assets/img/graveler/walking/tile008.png"/>
+  <img id="graveler-walking-right-one" src="assets/img/graveler/walking/tile009.png"/>
+  <img id="graveler-walking-right-two" src="assets/img/graveler/walking/tile010.png"/>
+  <img id="graveler-walking-right-three" src="assets/img/graveler/walking/tile011.png"/>
+  <img id="graveler-attacking-down-one" src="assets/img/graveler/attacking/tile000.png"/>
+  <img id="graveler-attacking-down-two" src="assets/img/graveler/attacking/tile001.png"/>
+  <img id="graveler-attacking-down-three" src="assets/img/graveler/attacking/tile002.png"/>
+  <img id="graveler-attacking-up-one" src="assets/img/graveler/attacking/tile003.png"/>
+  <img id="graveler-attacking-up-two" src="assets/img/graveler/attacking/tile004.png"/>
+  <img id="graveler-attacking-up-three" src="assets/img/graveler/attacking/tile005.png"/>
+  <img id="graveler-attacking-left-one" src="assets/img/graveler/attacking/tile006.png"/>
+  <img id="graveler-attacking-left-two" src="assets/img/graveler/attacking/tile007.png"/>
+  <img id="graveler-attacking-left-three" src="assets/img/graveler/attacking/tile008.png"/>
+  <img id="graveler-attacking-right-one" src="assets/img/graveler/attacking/tile009.png"/>
+  <img id="graveler-attacking-right-two" src="assets/img/graveler/attacking/tile010.png"/>
+  <img id="graveler-attacking-right-three" src="assets/img/graveler/attacking/tile011.png"/>
+  <img id="graveler-sleeping-down-one" src="assets/img/graveler/sleeping/tile000.png"/>
+  <img id="graveler-sleeping-down-two" src="assets/img/graveler/sleeping/tile001.png"/>
+  <img id="graveler-sleeping-down-three" src="assets/img/graveler/sleeping/tile002.png"/>
+  <img id="graveler-sleeping-up-one" src="assets/img/graveler/sleeping/tile000.png"/>
+  <img id="graveler-sleeping-up-two" src="assets/img/graveler/sleeping/tile001.png"/>
+  <img id="graveler-sleeping-up-three" src="assets/img/graveler/sleeping/tile002.png"/>
+  <img id="graveler-sleeping-left-one" src="assets/img/graveler/sleeping/tile000.png"/>
+  <img id="graveler-sleeping-left-two" src="assets/img/graveler/sleeping/tile001.png"/>
+  <img id="graveler-sleeping-left-three" src="assets/img/graveler/sleeping/tile002.png"/>
+  <img id="graveler-sleeping-right-one" src="assets/img/graveler/sleeping/tile000.png"/>
+  <img id="graveler-sleeping-right-two" src="assets/img/graveler/sleeping/tile001.png"/>
+  <img id="graveler-sleeping-right-three" src="assets/img/graveler/sleeping/tile002.png"/>
+
+  <img id="growlithe-dead-down-one" src="assets/img/growlithe/walking/tile012.png"/>
+  <img id="growlithe-walking-down-one" src="assets/img/growlithe/walking/tile000.png"/>
+  <img id="growlithe-walking-down-two" src="assets/img/growlithe/walking/tile001.png"/>
+  <img id="growlithe-walking-down-three" src="assets/img/growlithe/walking/tile002.png"/>
+  <img id="growlithe-walking-up-one" src="assets/img/growlithe/walking/tile003.png"/>
+  <img id="growlithe-walking-up-two" src="assets/img/growlithe/walking/tile004.png"/>
+  <img id="growlithe-walking-up-three" src="assets/img/growlithe/walking/tile005.png"/>
+  <img id="growlithe-walking-left-one" src="assets/img/growlithe/walking/tile006.png"/>
+  <img id="growlithe-walking-left-two" src="assets/img/growlithe/walking/tile007.png"/>
+  <img id="growlithe-walking-left-three" src="assets/img/growlithe/walking/tile008.png"/>
+  <img id="growlithe-walking-right-one" src="assets/img/growlithe/walking/tile009.png"/>
+  <img id="growlithe-walking-right-two" src="assets/img/growlithe/walking/tile010.png"/>
+  <img id="growlithe-walking-right-three" src="assets/img/growlithe/walking/tile011.png"/>
+  <img id="growlithe-attacking-down-one" src="assets/img/growlithe/attacking/tile000.png"/>
+  <img id="growlithe-attacking-down-two" src="assets/img/growlithe/attacking/tile001.png"/>
+  <img id="growlithe-attacking-down-three" src="assets/img/growlithe/attacking/tile002.png"/>
+  <img id="growlithe-attacking-up-one" src="assets/img/growlithe/attacking/tile003.png"/>
+  <img id="growlithe-attacking-up-two" src="assets/img/growlithe/attacking/tile004.png"/>
+  <img id="growlithe-attacking-up-three" src="assets/img/growlithe/attacking/tile005.png"/>
+  <img id="growlithe-attacking-left-one" src="assets/img/growlithe/attacking/tile006.png"/>
+  <img id="growlithe-attacking-left-two" src="assets/img/growlithe/attacking/tile007.png"/>
+  <img id="growlithe-attacking-left-three" src="assets/img/growlithe/attacking/tile008.png"/>
+  <img id="growlithe-attacking-right-one" src="assets/img/growlithe/attacking/tile009.png"/>
+  <img id="growlithe-attacking-right-two" src="assets/img/growlithe/attacking/tile010.png"/>
+  <img id="growlithe-attacking-right-three" src="assets/img/growlithe/attacking/tile011.png"/>
+  <img id="growlithe-sleeping-down-one" src="assets/img/growlithe/sleeping/tile000.png"/>
+  <img id="growlithe-sleeping-down-two" src="assets/img/growlithe/sleeping/tile001.png"/>
+  <img id="growlithe-sleeping-down-three" src="assets/img/growlithe/sleeping/tile002.png"/>
+  <img id="growlithe-sleeping-up-one" src="assets/img/growlithe/sleeping/tile000.png"/>
+  <img id="growlithe-sleeping-up-two" src="assets/img/growlithe/sleeping/tile001.png"/>
+  <img id="growlithe-sleeping-up-three" src="assets/img/growlithe/sleeping/tile002.png"/>
+  <img id="growlithe-sleeping-left-one" src="assets/img/growlithe/sleeping/tile000.png"/>
+  <img id="growlithe-sleeping-left-two" src="assets/img/growlithe/sleeping/tile001.png"/>
+  <img id="growlithe-sleeping-left-three" src="assets/img/growlithe/sleeping/tile002.png"/>
+  <img id="growlithe-sleeping-right-one" src="assets/img/growlithe/sleeping/tile000.png"/>
+  <img id="growlithe-sleeping-right-two" src="assets/img/growlithe/sleeping/tile001.png"/>
+  <img id="growlithe-sleeping-right-three" src="assets/img/growlithe/sleeping/tile002.png"/>
+
+  <img id="ivysaur-dead-down-one" src="assets/img/ivysaur/walking/tile012.png"/>
+  <img id="ivysaur-walking-down-one" src="assets/img/ivysaur/walking/tile000.png"/>
+  <img id="ivysaur-walking-down-two" src="assets/img/ivysaur/walking/tile001.png"/>
+  <img id="ivysaur-walking-down-three" src="assets/img/ivysaur/walking/tile002.png"/>
+  <img id="ivysaur-walking-up-one" src="assets/img/ivysaur/walking/tile003.png"/>
+  <img id="ivysaur-walking-up-two" src="assets/img/ivysaur/walking/tile004.png"/>
+  <img id="ivysaur-walking-up-three" src="assets/img/ivysaur/walking/tile005.png"/>
+  <img id="ivysaur-walking-left-one" src="assets/img/ivysaur/walking/tile006.png"/>
+  <img id="ivysaur-walking-left-two" src="assets/img/ivysaur/walking/tile007.png"/>
+  <img id="ivysaur-walking-left-three" src="assets/img/ivysaur/walking/tile008.png"/>
+  <img id="ivysaur-walking-right-one" src="assets/img/ivysaur/walking/tile009.png"/>
+  <img id="ivysaur-walking-right-two" src="assets/img/ivysaur/walking/tile010.png"/>
+  <img id="ivysaur-walking-right-three" src="assets/img/ivysaur/walking/tile011.png"/>
+  <img id="ivysaur-attacking-down-one" src="assets/img/ivysaur/attacking/tile000.png"/>
+  <img id="ivysaur-attacking-down-two" src="assets/img/ivysaur/attacking/tile001.png"/>
+  <img id="ivysaur-attacking-down-three" src="assets/img/ivysaur/attacking/tile002.png"/>
+  <img id="ivysaur-attacking-up-one" src="assets/img/ivysaur/attacking/tile003.png"/>
+  <img id="ivysaur-attacking-up-two" src="assets/img/ivysaur/attacking/tile004.png"/>
+  <img id="ivysaur-attacking-up-three" src="assets/img/ivysaur/attacking/tile005.png"/>
+  <img id="ivysaur-attacking-left-one" src="assets/img/ivysaur/attacking/tile006.png"/>
+  <img id="ivysaur-attacking-left-two" src="assets/img/ivysaur/attacking/tile007.png"/>
+  <img id="ivysaur-attacking-left-three" src="assets/img/ivysaur/attacking/tile008.png"/>
+  <img id="ivysaur-attacking-right-one" src="assets/img/ivysaur/attacking/tile009.png"/>
+  <img id="ivysaur-attacking-right-two" src="assets/img/ivysaur/attacking/tile010.png"/>
+  <img id="ivysaur-attacking-right-three" src="assets/img/ivysaur/attacking/tile011.png"/>
+  <img id="ivysaur-sleeping-down-one" src="assets/img/ivysaur/sleeping/tile000.png"/>
+  <img id="ivysaur-sleeping-down-two" src="assets/img/ivysaur/sleeping/tile001.png"/>
+  <img id="ivysaur-sleeping-down-three" src="assets/img/ivysaur/sleeping/tile002.png"/>
+  <img id="ivysaur-sleeping-up-one" src="assets/img/ivysaur/sleeping/tile000.png"/>
+  <img id="ivysaur-sleeping-up-two" src="assets/img/ivysaur/sleeping/tile001.png"/>
+  <img id="ivysaur-sleeping-up-three" src="assets/img/ivysaur/sleeping/tile002.png"/>
+  <img id="ivysaur-sleeping-left-one" src="assets/img/ivysaur/sleeping/tile000.png"/>
+  <img id="ivysaur-sleeping-left-two" src="assets/img/ivysaur/sleeping/tile001.png"/>
+  <img id="ivysaur-sleeping-left-three" src="assets/img/ivysaur/sleeping/tile002.png"/>
+  <img id="ivysaur-sleeping-right-one" src="assets/img/ivysaur/sleeping/tile000.png"/>
+  <img id="ivysaur-sleeping-right-two" src="assets/img/ivysaur/sleeping/tile001.png"/>
+  <img id="ivysaur-sleeping-right-three" src="assets/img/ivysaur/sleeping/tile002.png"/>
+
+
+  <img id="kangaskhan-dead-down-one" src="assets/img/kangaskhan/walking/tile012.png"/>
+  <img id="kangaskhan-walking-down-one" src="assets/img/kangaskhan/walking/tile000.png"/>
+  <img id="kangaskhan-walking-down-two" src="assets/img/kangaskhan/walking/tile001.png"/>
+  <img id="kangaskhan-walking-down-three" src="assets/img/kangaskhan/walking/tile002.png"/>
+  <img id="kangaskhan-walking-up-one" src="assets/img/kangaskhan/walking/tile003.png"/>
+  <img id="kangaskhan-walking-up-two" src="assets/img/kangaskhan/walking/tile004.png"/>
+  <img id="kangaskhan-walking-up-three" src="assets/img/kangaskhan/walking/tile005.png"/>
+  <img id="kangaskhan-walking-left-one" src="assets/img/kangaskhan/walking/tile006.png"/>
+  <img id="kangaskhan-walking-left-two" src="assets/img/kangaskhan/walking/tile007.png"/>
+  <img id="kangaskhan-walking-left-three" src="assets/img/kangaskhan/walking/tile008.png"/>
+  <img id="kangaskhan-walking-right-one" src="assets/img/kangaskhan/walking/tile009.png"/>
+  <img id="kangaskhan-walking-right-two" src="assets/img/kangaskhan/walking/tile010.png"/>
+  <img id="kangaskhan-walking-right-three" src="assets/img/kangaskhan/walking/tile011.png"/>
+  <img id="kangaskhan-attacking-down-one" src="assets/img/kangaskhan/attacking/tile000.png"/>
+  <img id="kangaskhan-attacking-down-two" src="assets/img/kangaskhan/attacking/tile001.png"/>
+  <img id="kangaskhan-attacking-down-three" src="assets/img/kangaskhan/attacking/tile002.png"/>
+  <img id="kangaskhan-attacking-up-one" src="assets/img/kangaskhan/attacking/tile003.png"/>
+  <img id="kangaskhan-attacking-up-two" src="assets/img/kangaskhan/attacking/tile004.png"/>
+  <img id="kangaskhan-attacking-up-three" src="assets/img/kangaskhan/attacking/tile005.png"/>
+  <img id="kangaskhan-attacking-left-one" src="assets/img/kangaskhan/attacking/tile006.png"/>
+  <img id="kangaskhan-attacking-left-two" src="assets/img/kangaskhan/attacking/tile007.png"/>
+  <img id="kangaskhan-attacking-left-three" src="assets/img/kangaskhan/attacking/tile008.png"/>
+  <img id="kangaskhan-attacking-right-one" src="assets/img/kangaskhan/attacking/tile009.png"/>
+  <img id="kangaskhan-attacking-right-two" src="assets/img/kangaskhan/attacking/tile010.png"/>
+  <img id="kangaskhan-attacking-right-three" src="assets/img/kangaskhan/attacking/tile011.png"/>
+  <img id="kangaskhan-sleeping-down-one" src="assets/img/kangaskhan/sleeping/tile000.png"/>
+  <img id="kangaskhan-sleeping-down-two" src="assets/img/kangaskhan/sleeping/tile001.png"/>
+  <img id="kangaskhan-sleeping-down-three" src="assets/img/kangaskhan/sleeping/tile002.png"/>
+  <img id="kangaskhan-sleeping-up-one" src="assets/img/kangaskhan/sleeping/tile000.png"/>
+  <img id="kangaskhan-sleeping-up-two" src="assets/img/kangaskhan/sleeping/tile001.png"/>
+  <img id="kangaskhan-sleeping-up-three" src="assets/img/kangaskhan/sleeping/tile002.png"/>
+  <img id="kangaskhan-sleeping-left-one" src="assets/img/kangaskhan/sleeping/tile000.png"/>
+  <img id="kangaskhan-sleeping-left-two" src="assets/img/kangaskhan/sleeping/tile001.png"/>
+  <img id="kangaskhan-sleeping-left-three" src="assets/img/kangaskhan/sleeping/tile002.png"/>
+  <img id="kangaskhan-sleeping-right-one" src="assets/img/kangaskhan/sleeping/tile000.png"/>
+  <img id="kangaskhan-sleeping-right-two" src="assets/img/kangaskhan/sleeping/tile001.png"/>
+  <img id="kangaskhan-sleeping-right-three" src="assets/img/kangaskhan/sleeping/tile002.png"/>
+
+  <img id="lapras-dead-down-one" src="assets/img/lapras/walking/tile012.png"/>
+  <img id="lapras-walking-down-one" src="assets/img/lapras/walking/tile000.png"/>
+  <img id="lapras-walking-down-two" src="assets/img/lapras/walking/tile001.png"/>
+  <img id="lapras-walking-down-three" src="assets/img/lapras/walking/tile002.png"/>
+  <img id="lapras-walking-up-one" src="assets/img/lapras/walking/tile003.png"/>
+  <img id="lapras-walking-up-two" src="assets/img/lapras/walking/tile004.png"/>
+  <img id="lapras-walking-up-three" src="assets/img/lapras/walking/tile005.png"/>
+  <img id="lapras-walking-left-one" src="assets/img/lapras/walking/tile006.png"/>
+  <img id="lapras-walking-left-two" src="assets/img/lapras/walking/tile007.png"/>
+  <img id="lapras-walking-left-three" src="assets/img/lapras/walking/tile008.png"/>
+  <img id="lapras-walking-right-one" src="assets/img/lapras/walking/tile009.png"/>
+  <img id="lapras-walking-right-two" src="assets/img/lapras/walking/tile010.png"/>
+  <img id="lapras-walking-right-three" src="assets/img/lapras/walking/tile011.png"/>
+  <img id="lapras-attacking-down-one" src="assets/img/lapras/attacking/tile000.png"/>
+  <img id="lapras-attacking-down-two" src="assets/img/lapras/attacking/tile001.png"/>
+  <img id="lapras-attacking-down-three" src="assets/img/lapras/attacking/tile002.png"/>
+  <img id="lapras-attacking-up-one" src="assets/img/lapras/attacking/tile003.png"/>
+  <img id="lapras-attacking-up-two" src="assets/img/lapras/attacking/tile004.png"/>
+  <img id="lapras-attacking-up-three" src="assets/img/lapras/attacking/tile005.png"/>
+  <img id="lapras-attacking-left-one" src="assets/img/lapras/attacking/tile006.png"/>
+  <img id="lapras-attacking-left-two" src="assets/img/lapras/attacking/tile007.png"/>
+  <img id="lapras-attacking-left-three" src="assets/img/lapras/attacking/tile008.png"/>
+  <img id="lapras-attacking-right-one" src="assets/img/lapras/attacking/tile009.png"/>
+  <img id="lapras-attacking-right-two" src="assets/img/lapras/attacking/tile010.png"/>
+  <img id="lapras-attacking-right-three" src="assets/img/lapras/attacking/tile011.png"/>
+  <img id="lapras-sleeping-down-one" src="assets/img/lapras/sleeping/tile000.png"/>
+  <img id="lapras-sleeping-down-two" src="assets/img/lapras/sleeping/tile001.png"/>
+  <img id="lapras-sleeping-down-three" src="assets/img/lapras/sleeping/tile002.png"/>
+  <img id="lapras-sleeping-up-one" src="assets/img/lapras/sleeping/tile000.png"/>
+  <img id="lapras-sleeping-up-two" src="assets/img/lapras/sleeping/tile001.png"/>
+  <img id="lapras-sleeping-up-three" src="assets/img/lapras/sleeping/tile002.png"/>
+  <img id="lapras-sleeping-left-one" src="assets/img/lapras/sleeping/tile000.png"/>
+  <img id="lapras-sleeping-left-two" src="assets/img/lapras/sleeping/tile001.png"/>
+  <img id="lapras-sleeping-left-three" src="assets/img/lapras/sleeping/tile002.png"/>
+  <img id="lapras-sleeping-right-one" src="assets/img/lapras/sleeping/tile000.png"/>
+  <img id="lapras-sleeping-right-two" src="assets/img/lapras/sleeping/tile001.png"/>
+  <img id="lapras-sleeping-right-three" src="assets/img/lapras/sleeping/tile002.png"/>
+
+  <img id="machamp-dead-down-one" src="assets/img/machamp/walking/tile012.png"/>
+  <img id="machamp-walking-down-one" src="assets/img/machamp/walking/tile000.png"/>
+  <img id="machamp-walking-down-two" src="assets/img/machamp/walking/tile001.png"/>
+  <img id="machamp-walking-down-three" src="assets/img/machamp/walking/tile002.png"/>
+  <img id="machamp-walking-up-one" src="assets/img/machamp/walking/tile003.png"/>
+  <img id="machamp-walking-up-two" src="assets/img/machamp/walking/tile004.png"/>
+  <img id="machamp-walking-up-three" src="assets/img/machamp/walking/tile005.png"/>
+  <img id="machamp-walking-left-one" src="assets/img/machamp/walking/tile006.png"/>
+  <img id="machamp-walking-left-two" src="assets/img/machamp/walking/tile007.png"/>
+  <img id="machamp-walking-left-three" src="assets/img/machamp/walking/tile008.png"/>
+  <img id="machamp-walking-right-one" src="assets/img/machamp/walking/tile009.png"/>
+  <img id="machamp-walking-right-two" src="assets/img/machamp/walking/tile010.png"/>
+  <img id="machamp-walking-right-three" src="assets/img/machamp/walking/tile011.png"/>
+  <img id="machamp-attacking-down-one" src="assets/img/machamp/attacking/tile000.png"/>
+  <img id="machamp-attacking-down-two" src="assets/img/machamp/attacking/tile001.png"/>
+  <img id="machamp-attacking-down-three" src="assets/img/machamp/attacking/tile002.png"/>
+  <img id="machamp-attacking-up-one" src="assets/img/machamp/attacking/tile003.png"/>
+  <img id="machamp-attacking-up-two" src="assets/img/machamp/attacking/tile004.png"/>
+  <img id="machamp-attacking-up-three" src="assets/img/machamp/attacking/tile005.png"/>
+  <img id="machamp-attacking-left-one" src="assets/img/machamp/attacking/tile006.png"/>
+  <img id="machamp-attacking-left-two" src="assets/img/machamp/attacking/tile007.png"/>
+  <img id="machamp-attacking-left-three" src="assets/img/machamp/attacking/tile008.png"/>
+  <img id="machamp-attacking-right-one" src="assets/img/machamp/attacking/tile009.png"/>
+  <img id="machamp-attacking-right-two" src="assets/img/machamp/attacking/tile010.png"/>
+  <img id="machamp-attacking-right-three" src="assets/img/machamp/attacking/tile011.png"/>
+  <img id="machamp-sleeping-down-one" src="assets/img/machamp/sleeping/tile000.png"/>
+  <img id="machamp-sleeping-down-two" src="assets/img/machamp/sleeping/tile001.png"/>
+  <img id="machamp-sleeping-down-three" src="assets/img/machamp/sleeping/tile002.png"/>
+  <img id="machamp-sleeping-up-one" src="assets/img/machamp/sleeping/tile000.png"/>
+  <img id="machamp-sleeping-up-two" src="assets/img/machamp/sleeping/tile001.png"/>
+  <img id="machamp-sleeping-up-three" src="assets/img/machamp/sleeping/tile002.png"/>
+  <img id="machamp-sleeping-left-one" src="assets/img/machamp/sleeping/tile000.png"/>
+  <img id="machamp-sleeping-left-two" src="assets/img/machamp/sleeping/tile001.png"/>
+  <img id="machamp-sleeping-left-three" src="assets/img/machamp/sleeping/tile002.png"/>
+  <img id="machamp-sleeping-right-one" src="assets/img/machamp/sleeping/tile000.png"/>
+  <img id="machamp-sleeping-right-two" src="assets/img/machamp/sleeping/tile001.png"/>
+  <img id="machamp-sleeping-right-three" src="assets/img/machamp/sleeping/tile002.png"/>
+
+    <img id="machoke-dead-down-one" src="assets/img/machoke/walking/tile012.png"/>
+  <img id="machoke-walking-down-one" src="assets/img/machoke/walking/tile000.png"/>
+  <img id="machoke-walking-down-two" src="assets/img/machoke/walking/tile001.png"/>
+  <img id="machoke-walking-down-three" src="assets/img/machoke/walking/tile002.png"/>
+  <img id="machoke-walking-up-one" src="assets/img/machoke/walking/tile003.png"/>
+  <img id="machoke-walking-up-two" src="assets/img/machoke/walking/tile004.png"/>
+  <img id="machoke-walking-up-three" src="assets/img/machoke/walking/tile005.png"/>
+  <img id="machoke-walking-left-one" src="assets/img/machoke/walking/tile006.png"/>
+  <img id="machoke-walking-left-two" src="assets/img/machoke/walking/tile007.png"/>
+  <img id="machoke-walking-left-three" src="assets/img/machoke/walking/tile008.png"/>
+  <img id="machoke-walking-right-one" src="assets/img/machoke/walking/tile009.png"/>
+  <img id="machoke-walking-right-two" src="assets/img/machoke/walking/tile010.png"/>
+  <img id="machoke-walking-right-three" src="assets/img/machoke/walking/tile011.png"/>
+  <img id="machoke-attacking-down-one" src="assets/img/machoke/attacking/tile000.png"/>
+  <img id="machoke-attacking-down-two" src="assets/img/machoke/attacking/tile001.png"/>
+  <img id="machoke-attacking-down-three" src="assets/img/machoke/attacking/tile002.png"/>
+  <img id="machoke-attacking-up-one" src="assets/img/machoke/attacking/tile003.png"/>
+  <img id="machoke-attacking-up-two" src="assets/img/machoke/attacking/tile004.png"/>
+  <img id="machoke-attacking-up-three" src="assets/img/machoke/attacking/tile005.png"/>
+  <img id="machoke-attacking-left-one" src="assets/img/machoke/attacking/tile006.png"/>
+  <img id="machoke-attacking-left-two" src="assets/img/machoke/attacking/tile007.png"/>
+  <img id="machoke-attacking-left-three" src="assets/img/machoke/attacking/tile008.png"/>
+  <img id="machoke-attacking-right-one" src="assets/img/machoke/attacking/tile009.png"/>
+  <img id="machoke-attacking-right-two" src="assets/img/machoke/attacking/tile010.png"/>
+  <img id="machoke-attacking-right-three" src="assets/img/machoke/attacking/tile011.png"/>
+  <img id="machoke-sleeping-down-one" src="assets/img/machoke/sleeping/tile000.png"/>
+  <img id="machoke-sleeping-down-two" src="assets/img/machoke/sleeping/tile001.png"/>
+  <img id="machoke-sleeping-down-three" src="assets/img/machoke/sleeping/tile002.png"/>
+  <img id="machoke-sleeping-up-one" src="assets/img/machoke/sleeping/tile000.png"/>
+  <img id="machoke-sleeping-up-two" src="assets/img/machoke/sleeping/tile001.png"/>
+  <img id="machoke-sleeping-up-three" src="assets/img/machoke/sleeping/tile002.png"/>
+  <img id="machoke-sleeping-left-one" src="assets/img/machoke/sleeping/tile000.png"/>
+  <img id="machoke-sleeping-left-two" src="assets/img/machoke/sleeping/tile001.png"/>
+  <img id="machoke-sleeping-left-three" src="assets/img/machoke/sleeping/tile002.png"/>
+  <img id="machoke-sleeping-right-one" src="assets/img/machoke/sleeping/tile000.png"/>
+  <img id="machoke-sleeping-right-two" src="assets/img/machoke/sleeping/tile001.png"/>
+  <img id="machoke-sleeping-right-three" src="assets/img/machoke/sleeping/tile002.png"/>
+
+  <img id="machop-dead-down-one" src="assets/img/machop/walking/tile012.png"/>
+  <img id="machop-walking-down-one" src="assets/img/machop/walking/tile000.png"/>
+  <img id="machop-walking-down-two" src="assets/img/machop/walking/tile001.png"/>
+  <img id="machop-walking-down-three" src="assets/img/machop/walking/tile002.png"/>
+  <img id="machop-walking-up-one" src="assets/img/machop/walking/tile003.png"/>
+  <img id="machop-walking-up-two" src="assets/img/machop/walking/tile004.png"/>
+  <img id="machop-walking-up-three" src="assets/img/machop/walking/tile005.png"/>
+  <img id="machop-walking-left-one" src="assets/img/machop/walking/tile006.png"/>
+  <img id="machop-walking-left-two" src="assets/img/machop/walking/tile007.png"/>
+  <img id="machop-walking-left-three" src="assets/img/machop/walking/tile008.png"/>
+  <img id="machop-walking-right-one" src="assets/img/machop/walking/tile009.png"/>
+  <img id="machop-walking-right-two" src="assets/img/machop/walking/tile010.png"/>
+  <img id="machop-walking-right-three" src="assets/img/machop/walking/tile011.png"/>
+  <img id="machop-attacking-down-one" src="assets/img/machop/attacking/tile000.png"/>
+  <img id="machop-attacking-down-two" src="assets/img/machop/attacking/tile001.png"/>
+  <img id="machop-attacking-down-three" src="assets/img/machop/attacking/tile002.png"/>
+  <img id="machop-attacking-up-one" src="assets/img/machop/attacking/tile003.png"/>
+  <img id="machop-attacking-up-two" src="assets/img/machop/attacking/tile004.png"/>
+  <img id="machop-attacking-up-three" src="assets/img/machop/attacking/tile005.png"/>
+  <img id="machop-attacking-left-one" src="assets/img/machop/attacking/tile006.png"/>
+  <img id="machop-attacking-left-two" src="assets/img/machop/attacking/tile007.png"/>
+  <img id="machop-attacking-left-three" src="assets/img/machop/attacking/tile008.png"/>
+  <img id="machop-attacking-right-one" src="assets/img/machop/attacking/tile009.png"/>
+  <img id="machop-attacking-right-two" src="assets/img/machop/attacking/tile010.png"/>
+  <img id="machop-attacking-right-three" src="assets/img/machop/attacking/tile011.png"/>
+  <img id="machop-sleeping-down-one" src="assets/img/machop/sleeping/tile000.png"/>
+  <img id="machop-sleeping-down-two" src="assets/img/machop/sleeping/tile001.png"/>
+  <img id="machop-sleeping-down-three" src="assets/img/machop/sleeping/tile002.png"/>
+  <img id="machop-sleeping-up-one" src="assets/img/machop/sleeping/tile000.png"/>
+  <img id="machop-sleeping-up-two" src="assets/img/machop/sleeping/tile001.png"/>
+  <img id="machop-sleeping-up-three" src="assets/img/machop/sleeping/tile002.png"/>
+  <img id="machop-sleeping-left-one" src="assets/img/machop/sleeping/tile000.png"/>
+  <img id="machop-sleeping-left-two" src="assets/img/machop/sleeping/tile001.png"/>
+  <img id="machop-sleeping-left-three" src="assets/img/machop/sleeping/tile002.png"/>
+  <img id="machop-sleeping-right-one" src="assets/img/machop/sleeping/tile000.png"/>
+  <img id="machop-sleeping-right-two" src="assets/img/machop/sleeping/tile001.png"/>
+  <img id="machop-sleeping-right-three" src="assets/img/machop/sleeping/tile002.png"/>
+
+  <img id="mewtwo-dead-down-one" src="assets/img/mewtwo/walking/tile012.png"/>
+  <img id="mewtwo-walking-down-one" src="assets/img/mewtwo/walking/tile000.png"/>
+  <img id="mewtwo-walking-down-two" src="assets/img/mewtwo/walking/tile001.png"/>
+  <img id="mewtwo-walking-down-three" src="assets/img/mewtwo/walking/tile002.png"/>
+  <img id="mewtwo-walking-up-one" src="assets/img/mewtwo/walking/tile003.png"/>
+  <img id="mewtwo-walking-up-two" src="assets/img/mewtwo/walking/tile004.png"/>
+  <img id="mewtwo-walking-up-three" src="assets/img/mewtwo/walking/tile005.png"/>
+  <img id="mewtwo-walking-left-one" src="assets/img/mewtwo/walking/tile006.png"/>
+  <img id="mewtwo-walking-left-two" src="assets/img/mewtwo/walking/tile007.png"/>
+  <img id="mewtwo-walking-left-three" src="assets/img/mewtwo/walking/tile008.png"/>
+  <img id="mewtwo-walking-right-one" src="assets/img/mewtwo/walking/tile009.png"/>
+  <img id="mewtwo-walking-right-two" src="assets/img/mewtwo/walking/tile010.png"/>
+  <img id="mewtwo-walking-right-three" src="assets/img/mewtwo/walking/tile011.png"/>
+  <img id="mewtwo-attacking-down-one" src="assets/img/mewtwo/attacking/tile000.png"/>
+  <img id="mewtwo-attacking-down-two" src="assets/img/mewtwo/attacking/tile001.png"/>
+  <img id="mewtwo-attacking-down-three" src="assets/img/mewtwo/attacking/tile002.png"/>
+  <img id="mewtwo-attacking-up-one" src="assets/img/mewtwo/attacking/tile003.png"/>
+  <img id="mewtwo-attacking-up-two" src="assets/img/mewtwo/attacking/tile004.png"/>
+  <img id="mewtwo-attacking-up-three" src="assets/img/mewtwo/attacking/tile005.png"/>
+  <img id="mewtwo-attacking-left-one" src="assets/img/mewtwo/attacking/tile006.png"/>
+  <img id="mewtwo-attacking-left-two" src="assets/img/mewtwo/attacking/tile007.png"/>
+  <img id="mewtwo-attacking-left-three" src="assets/img/mewtwo/attacking/tile008.png"/>
+  <img id="mewtwo-attacking-right-one" src="assets/img/mewtwo/attacking/tile009.png"/>
+  <img id="mewtwo-attacking-right-two" src="assets/img/mewtwo/attacking/tile010.png"/>
+  <img id="mewtwo-attacking-right-three" src="assets/img/mewtwo/attacking/tile011.png"/>
+  <img id="mewtwo-sleeping-down-one" src="assets/img/mewtwo/sleeping/tile000.png"/>
+  <img id="mewtwo-sleeping-down-two" src="assets/img/mewtwo/sleeping/tile001.png"/>
+  <img id="mewtwo-sleeping-down-three" src="assets/img/mewtwo/sleeping/tile002.png"/>
+  <img id="mewtwo-sleeping-up-one" src="assets/img/mewtwo/sleeping/tile000.png"/>
+  <img id="mewtwo-sleeping-up-two" src="assets/img/mewtwo/sleeping/tile001.png"/>
+  <img id="mewtwo-sleeping-up-three" src="assets/img/mewtwo/sleeping/tile002.png"/>
+  <img id="mewtwo-sleeping-left-one" src="assets/img/mewtwo/sleeping/tile000.png"/>
+  <img id="mewtwo-sleeping-left-two" src="assets/img/mewtwo/sleeping/tile001.png"/>
+  <img id="mewtwo-sleeping-left-three" src="assets/img/mewtwo/sleeping/tile002.png"/>
+  <img id="mewtwo-sleeping-right-one" src="assets/img/mewtwo/sleeping/tile000.png"/>
+  <img id="mewtwo-sleeping-right-two" src="assets/img/mewtwo/sleeping/tile001.png"/>
+  <img id="mewtwo-sleeping-right-three" src="assets/img/mewtwo/sleeping/tile002.png"/>
+
+  <img id="nidoking-dead-down-one" src="assets/img/nidoking/walking/tile012.png"/>
+  <img id="nidoking-walking-down-one" src="assets/img/nidoking/walking/tile000.png"/>
+  <img id="nidoking-walking-down-two" src="assets/img/nidoking/walking/tile001.png"/>
+  <img id="nidoking-walking-down-three" src="assets/img/nidoking/walking/tile002.png"/>
+  <img id="nidoking-walking-up-one" src="assets/img/nidoking/walking/tile003.png"/>
+  <img id="nidoking-walking-up-two" src="assets/img/nidoking/walking/tile004.png"/>
+  <img id="nidoking-walking-up-three" src="assets/img/nidoking/walking/tile005.png"/>
+  <img id="nidoking-walking-left-one" src="assets/img/nidoking/walking/tile006.png"/>
+  <img id="nidoking-walking-left-two" src="assets/img/nidoking/walking/tile007.png"/>
+  <img id="nidoking-walking-left-three" src="assets/img/nidoking/walking/tile008.png"/>
+  <img id="nidoking-walking-right-one" src="assets/img/nidoking/walking/tile009.png"/>
+  <img id="nidoking-walking-right-two" src="assets/img/nidoking/walking/tile010.png"/>
+  <img id="nidoking-walking-right-three" src="assets/img/nidoking/walking/tile011.png"/>
+  <img id="nidoking-attacking-down-one" src="assets/img/nidoking/attacking/tile000.png"/>
+  <img id="nidoking-attacking-down-two" src="assets/img/nidoking/attacking/tile001.png"/>
+  <img id="nidoking-attacking-down-three" src="assets/img/nidoking/attacking/tile002.png"/>
+  <img id="nidoking-attacking-up-one" src="assets/img/nidoking/attacking/tile003.png"/>
+  <img id="nidoking-attacking-up-two" src="assets/img/nidoking/attacking/tile004.png"/>
+  <img id="nidoking-attacking-up-three" src="assets/img/nidoking/attacking/tile005.png"/>
+  <img id="nidoking-attacking-left-one" src="assets/img/nidoking/attacking/tile006.png"/>
+  <img id="nidoking-attacking-left-two" src="assets/img/nidoking/attacking/tile007.png"/>
+  <img id="nidoking-attacking-left-three" src="assets/img/nidoking/attacking/tile008.png"/>
+  <img id="nidoking-attacking-right-one" src="assets/img/nidoking/attacking/tile009.png"/>
+  <img id="nidoking-attacking-right-two" src="assets/img/nidoking/attacking/tile010.png"/>
+  <img id="nidoking-attacking-right-three" src="assets/img/nidoking/attacking/tile011.png"/>
+  <img id="nidoking-sleeping-down-one" src="assets/img/nidoking/sleeping/tile000.png"/>
+  <img id="nidoking-sleeping-down-two" src="assets/img/nidoking/sleeping/tile001.png"/>
+  <img id="nidoking-sleeping-down-three" src="assets/img/nidoking/sleeping/tile002.png"/>
+  <img id="nidoking-sleeping-up-one" src="assets/img/nidoking/sleeping/tile000.png"/>
+  <img id="nidoking-sleeping-up-two" src="assets/img/nidoking/sleeping/tile001.png"/>
+  <img id="nidoking-sleeping-up-three" src="assets/img/nidoking/sleeping/tile002.png"/>
+  <img id="nidoking-sleeping-left-one" src="assets/img/nidoking/sleeping/tile000.png"/>
+  <img id="nidoking-sleeping-left-two" src="assets/img/nidoking/sleeping/tile001.png"/>
+  <img id="nidoking-sleeping-left-three" src="assets/img/nidoking/sleeping/tile002.png"/>
+  <img id="nidoking-sleeping-right-one" src="assets/img/nidoking/sleeping/tile000.png"/>
+  <img id="nidoking-sleeping-right-two" src="assets/img/nidoking/sleeping/tile001.png"/>
+  <img id="nidoking-sleeping-right-three" src="assets/img/nidoking/sleeping/tile002.png"/>
+
+  <img id="nidoran-dead-down-one" src="assets/img/nidoran/walking/tile012.png"/>
+  <img id="nidoran-walking-down-one" src="assets/img/nidoran/walking/tile000.png"/>
+  <img id="nidoran-walking-down-two" src="assets/img/nidoran/walking/tile001.png"/>
+  <img id="nidoran-walking-down-three" src="assets/img/nidoran/walking/tile002.png"/>
+  <img id="nidoran-walking-up-one" src="assets/img/nidoran/walking/tile003.png"/>
+  <img id="nidoran-walking-up-two" src="assets/img/nidoran/walking/tile004.png"/>
+  <img id="nidoran-walking-up-three" src="assets/img/nidoran/walking/tile005.png"/>
+  <img id="nidoran-walking-left-one" src="assets/img/nidoran/walking/tile006.png"/>
+  <img id="nidoran-walking-left-two" src="assets/img/nidoran/walking/tile007.png"/>
+  <img id="nidoran-walking-left-three" src="assets/img/nidoran/walking/tile008.png"/>
+  <img id="nidoran-walking-right-one" src="assets/img/nidoran/walking/tile009.png"/>
+  <img id="nidoran-walking-right-two" src="assets/img/nidoran/walking/tile010.png"/>
+  <img id="nidoran-walking-right-three" src="assets/img/nidoran/walking/tile011.png"/>
+  <img id="nidoran-attacking-down-one" src="assets/img/nidoran/attacking/tile000.png"/>
+  <img id="nidoran-attacking-down-two" src="assets/img/nidoran/attacking/tile001.png"/>
+  <img id="nidoran-attacking-down-three" src="assets/img/nidoran/attacking/tile002.png"/>
+  <img id="nidoran-attacking-up-one" src="assets/img/nidoran/attacking/tile003.png"/>
+  <img id="nidoran-attacking-up-two" src="assets/img/nidoran/attacking/tile004.png"/>
+  <img id="nidoran-attacking-up-three" src="assets/img/nidoran/attacking/tile005.png"/>
+  <img id="nidoran-attacking-left-one" src="assets/img/nidoran/attacking/tile006.png"/>
+  <img id="nidoran-attacking-left-two" src="assets/img/nidoran/attacking/tile007.png"/>
+  <img id="nidoran-attacking-left-three" src="assets/img/nidoran/attacking/tile008.png"/>
+  <img id="nidoran-attacking-right-one" src="assets/img/nidoran/attacking/tile009.png"/>
+  <img id="nidoran-attacking-right-two" src="assets/img/nidoran/attacking/tile010.png"/>
+  <img id="nidoran-attacking-right-three" src="assets/img/nidoran/attacking/tile011.png"/>
+  <img id="nidoran-sleeping-down-one" src="assets/img/nidoran/sleeping/tile000.png"/>
+  <img id="nidoran-sleeping-down-two" src="assets/img/nidoran/sleeping/tile001.png"/>
+  <img id="nidoran-sleeping-down-three" src="assets/img/nidoran/sleeping/tile002.png"/>
+  <img id="nidoran-sleeping-up-one" src="assets/img/nidoran/sleeping/tile000.png"/>
+  <img id="nidoran-sleeping-up-two" src="assets/img/nidoran/sleeping/tile001.png"/>
+  <img id="nidoran-sleeping-up-three" src="assets/img/nidoran/sleeping/tile002.png"/>
+  <img id="nidoran-sleeping-left-one" src="assets/img/nidoran/sleeping/tile000.png"/>
+  <img id="nidoran-sleeping-left-two" src="assets/img/nidoran/sleeping/tile001.png"/>
+  <img id="nidoran-sleeping-left-three" src="assets/img/nidoran/sleeping/tile002.png"/>
+  <img id="nidoran-sleeping-right-one" src="assets/img/nidoran/sleeping/tile000.png"/>
+  <img id="nidoran-sleeping-right-two" src="assets/img/nidoran/sleeping/tile001.png"/>
+  <img id="nidoran-sleeping-right-three" src="assets/img/nidoran/sleeping/tile002.png"/>
+
+  <img id="nidorino-dead-down-one" src="assets/img/nidorino/walking/tile012.png"/>
+  <img id="nidorino-walking-down-one" src="assets/img/nidorino/walking/tile000.png"/>
+  <img id="nidorino-walking-down-two" src="assets/img/nidorino/walking/tile001.png"/>
+  <img id="nidorino-walking-down-three" src="assets/img/nidorino/walking/tile002.png"/>
+  <img id="nidorino-walking-up-one" src="assets/img/nidorino/walking/tile003.png"/>
+  <img id="nidorino-walking-up-two" src="assets/img/nidorino/walking/tile004.png"/>
+  <img id="nidorino-walking-up-three" src="assets/img/nidorino/walking/tile005.png"/>
+  <img id="nidorino-walking-left-one" src="assets/img/nidorino/walking/tile006.png"/>
+  <img id="nidorino-walking-left-two" src="assets/img/nidorino/walking/tile007.png"/>
+  <img id="nidorino-walking-left-three" src="assets/img/nidorino/walking/tile008.png"/>
+  <img id="nidorino-walking-right-one" src="assets/img/nidorino/walking/tile009.png"/>
+  <img id="nidorino-walking-right-two" src="assets/img/nidorino/walking/tile010.png"/>
+  <img id="nidorino-walking-right-three" src="assets/img/nidorino/walking/tile011.png"/>
+  <img id="nidorino-attacking-down-one" src="assets/img/nidorino/attacking/tile000.png"/>
+  <img id="nidorino-attacking-down-two" src="assets/img/nidorino/attacking/tile001.png"/>
+  <img id="nidorino-attacking-down-three" src="assets/img/nidorino/attacking/tile002.png"/>
+  <img id="nidorino-attacking-up-one" src="assets/img/nidorino/attacking/tile003.png"/>
+  <img id="nidorino-attacking-up-two" src="assets/img/nidorino/attacking/tile004.png"/>
+  <img id="nidorino-attacking-up-three" src="assets/img/nidorino/attacking/tile005.png"/>
+  <img id="nidorino-attacking-left-one" src="assets/img/nidorino/attacking/tile006.png"/>
+  <img id="nidorino-attacking-left-two" src="assets/img/nidorino/attacking/tile007.png"/>
+  <img id="nidorino-attacking-left-three" src="assets/img/nidorino/attacking/tile008.png"/>
+  <img id="nidorino-attacking-right-one" src="assets/img/nidorino/attacking/tile009.png"/>
+  <img id="nidorino-attacking-right-two" src="assets/img/nidorino/attacking/tile010.png"/>
+  <img id="nidorino-attacking-right-three" src="assets/img/nidorino/attacking/tile011.png"/>
+  <img id="nidorino-sleeping-down-one" src="assets/img/nidorino/sleeping/tile000.png"/>
+  <img id="nidorino-sleeping-down-two" src="assets/img/nidorino/sleeping/tile001.png"/>
+  <img id="nidorino-sleeping-down-three" src="assets/img/nidorino/sleeping/tile002.png"/>
+  <img id="nidorino-sleeping-up-one" src="assets/img/nidorino/sleeping/tile000.png"/>
+  <img id="nidorino-sleeping-up-two" src="assets/img/nidorino/sleeping/tile001.png"/>
+  <img id="nidorino-sleeping-up-three" src="assets/img/nidorino/sleeping/tile002.png"/>
+  <img id="nidorino-sleeping-left-one" src="assets/img/nidorino/sleeping/tile000.png"/>
+  <img id="nidorino-sleeping-left-two" src="assets/img/nidorino/sleeping/tile001.png"/>
+  <img id="nidorino-sleeping-left-three" src="assets/img/nidorino/sleeping/tile002.png"/>
+  <img id="nidorino-sleeping-right-one" src="assets/img/nidorino/sleeping/tile000.png"/>
+  <img id="nidorino-sleeping-right-two" src="assets/img/nidorino/sleeping/tile001.png"/>
+  <img id="nidorino-sleeping-right-three" src="assets/img/nidorino/sleeping/tile002.png"/>
+
+  <img id="ninetails-dead-down-one" src="assets/img/ninetails/walking/tile012.png"/>
+  <img id="ninetails-walking-down-one" src="assets/img/ninetails/walking/tile000.png"/>
+  <img id="ninetails-walking-down-two" src="assets/img/ninetails/walking/tile001.png"/>
+  <img id="ninetails-walking-down-three" src="assets/img/ninetails/walking/tile002.png"/>
+  <img id="ninetails-walking-up-one" src="assets/img/ninetails/walking/tile003.png"/>
+  <img id="ninetails-walking-up-two" src="assets/img/ninetails/walking/tile004.png"/>
+  <img id="ninetails-walking-up-three" src="assets/img/ninetails/walking/tile005.png"/>
+  <img id="ninetails-walking-left-one" src="assets/img/ninetails/walking/tile006.png"/>
+  <img id="ninetails-walking-left-two" src="assets/img/ninetails/walking/tile007.png"/>
+  <img id="ninetails-walking-left-three" src="assets/img/ninetails/walking/tile008.png"/>
+  <img id="ninetails-walking-right-one" src="assets/img/ninetails/walking/tile009.png"/>
+  <img id="ninetails-walking-right-two" src="assets/img/ninetails/walking/tile010.png"/>
+  <img id="ninetails-walking-right-three" src="assets/img/ninetails/walking/tile011.png"/>
+  <img id="ninetails-attacking-down-one" src="assets/img/ninetails/attacking/tile000.png"/>
+  <img id="ninetails-attacking-down-two" src="assets/img/ninetails/attacking/tile001.png"/>
+  <img id="ninetails-attacking-down-three" src="assets/img/ninetails/attacking/tile002.png"/>
+  <img id="ninetails-attacking-up-one" src="assets/img/ninetails/attacking/tile003.png"/>
+  <img id="ninetails-attacking-up-two" src="assets/img/ninetails/attacking/tile004.png"/>
+  <img id="ninetails-attacking-up-three" src="assets/img/ninetails/attacking/tile005.png"/>
+  <img id="ninetails-attacking-left-one" src="assets/img/ninetails/attacking/tile006.png"/>
+  <img id="ninetails-attacking-left-two" src="assets/img/ninetails/attacking/tile007.png"/>
+  <img id="ninetails-attacking-left-three" src="assets/img/ninetails/attacking/tile008.png"/>
+  <img id="ninetails-attacking-right-one" src="assets/img/ninetails/attacking/tile009.png"/>
+  <img id="ninetails-attacking-right-two" src="assets/img/ninetails/attacking/tile010.png"/>
+  <img id="ninetails-attacking-right-three" src="assets/img/ninetails/attacking/tile011.png"/>
+  <img id="ninetails-sleeping-down-one" src="assets/img/ninetails/sleeping/tile000.png"/>
+  <img id="ninetails-sleeping-down-two" src="assets/img/ninetails/sleeping/tile001.png"/>
+  <img id="ninetails-sleeping-down-three" src="assets/img/ninetails/sleeping/tile002.png"/>
+  <img id="ninetails-sleeping-up-one" src="assets/img/ninetails/sleeping/tile000.png"/>
+  <img id="ninetails-sleeping-up-two" src="assets/img/ninetails/sleeping/tile001.png"/>
+  <img id="ninetails-sleeping-up-three" src="assets/img/ninetails/sleeping/tile002.png"/>
+  <img id="ninetails-sleeping-left-one" src="assets/img/ninetails/sleeping/tile000.png"/>
+  <img id="ninetails-sleeping-left-two" src="assets/img/ninetails/sleeping/tile001.png"/>
+  <img id="ninetails-sleeping-left-three" src="assets/img/ninetails/sleeping/tile002.png"/>
+  <img id="ninetails-sleeping-right-one" src="assets/img/ninetails/sleeping/tile000.png"/>
+  <img id="ninetails-sleeping-right-two" src="assets/img/ninetails/sleeping/tile001.png"/>
+  <img id="ninetails-sleeping-right-three" src="assets/img/ninetails/sleeping/tile002.png"/>
+
+  <img id="oddish-dead-down-one" src="assets/img/oddish/walking/tile012.png"/>
+  <img id="oddish-walking-down-one" src="assets/img/oddish/walking/tile000.png"/>
+  <img id="oddish-walking-down-two" src="assets/img/oddish/walking/tile001.png"/>
+  <img id="oddish-walking-down-three" src="assets/img/oddish/walking/tile002.png"/>
+  <img id="oddish-walking-up-one" src="assets/img/oddish/walking/tile003.png"/>
+  <img id="oddish-walking-up-two" src="assets/img/oddish/walking/tile004.png"/>
+  <img id="oddish-walking-up-three" src="assets/img/oddish/walking/tile005.png"/>
+  <img id="oddish-walking-left-one" src="assets/img/oddish/walking/tile006.png"/>
+  <img id="oddish-walking-left-two" src="assets/img/oddish/walking/tile007.png"/>
+  <img id="oddish-walking-left-three" src="assets/img/oddish/walking/tile008.png"/>
+  <img id="oddish-walking-right-one" src="assets/img/oddish/walking/tile009.png"/>
+  <img id="oddish-walking-right-two" src="assets/img/oddish/walking/tile010.png"/>
+  <img id="oddish-walking-right-three" src="assets/img/oddish/walking/tile011.png"/>
+  <img id="oddish-attacking-down-one" src="assets/img/oddish/attacking/tile000.png"/>
+  <img id="oddish-attacking-down-two" src="assets/img/oddish/attacking/tile001.png"/>
+  <img id="oddish-attacking-down-three" src="assets/img/oddish/attacking/tile002.png"/>
+  <img id="oddish-attacking-up-one" src="assets/img/oddish/attacking/tile003.png"/>
+  <img id="oddish-attacking-up-two" src="assets/img/oddish/attacking/tile004.png"/>
+  <img id="oddish-attacking-up-three" src="assets/img/oddish/attacking/tile005.png"/>
+  <img id="oddish-attacking-left-one" src="assets/img/oddish/attacking/tile006.png"/>
+  <img id="oddish-attacking-left-two" src="assets/img/oddish/attacking/tile007.png"/>
+  <img id="oddish-attacking-left-three" src="assets/img/oddish/attacking/tile008.png"/>
+  <img id="oddish-attacking-right-one" src="assets/img/oddish/attacking/tile009.png"/>
+  <img id="oddish-attacking-right-two" src="assets/img/oddish/attacking/tile010.png"/>
+  <img id="oddish-attacking-right-three" src="assets/img/oddish/attacking/tile011.png"/>
+  <img id="oddish-sleeping-down-one" src="assets/img/oddish/sleeping/tile000.png"/>
+  <img id="oddish-sleeping-down-two" src="assets/img/oddish/sleeping/tile001.png"/>
+  <img id="oddish-sleeping-down-three" src="assets/img/oddish/sleeping/tile002.png"/>
+  <img id="oddish-sleeping-up-one" src="assets/img/oddish/sleeping/tile000.png"/>
+  <img id="oddish-sleeping-up-two" src="assets/img/oddish/sleeping/tile001.png"/>
+  <img id="oddish-sleeping-up-three" src="assets/img/oddish/sleeping/tile002.png"/>
+  <img id="oddish-sleeping-left-one" src="assets/img/oddish/sleeping/tile000.png"/>
+  <img id="oddish-sleeping-left-two" src="assets/img/oddish/sleeping/tile001.png"/>
+  <img id="oddish-sleeping-left-three" src="assets/img/oddish/sleeping/tile002.png"/>
+  <img id="oddish-sleeping-right-one" src="assets/img/oddish/sleeping/tile000.png"/>
+  <img id="oddish-sleeping-right-two" src="assets/img/oddish/sleeping/tile001.png"/>
+  <img id="oddish-sleeping-right-three" src="assets/img/oddish/sleeping/tile002.png"/>
+
+
+  <img id="pidgeot-dead-down-one" src="assets/img/pidgeot/walking/tile012.png"/>
+  <img id="pidgeot-walking-down-one" src="assets/img/pidgeot/walking/tile000.png"/>
+  <img id="pidgeot-walking-down-two" src="assets/img/pidgeot/walking/tile001.png"/>
+  <img id="pidgeot-walking-down-three" src="assets/img/pidgeot/walking/tile002.png"/>
+  <img id="pidgeot-walking-up-one" src="assets/img/pidgeot/walking/tile003.png"/>
+  <img id="pidgeot-walking-up-two" src="assets/img/pidgeot/walking/tile004.png"/>
+  <img id="pidgeot-walking-up-three" src="assets/img/pidgeot/walking/tile005.png"/>
+  <img id="pidgeot-walking-left-one" src="assets/img/pidgeot/walking/tile006.png"/>
+  <img id="pidgeot-walking-left-two" src="assets/img/pidgeot/walking/tile007.png"/>
+  <img id="pidgeot-walking-left-three" src="assets/img/pidgeot/walking/tile008.png"/>
+  <img id="pidgeot-walking-right-one" src="assets/img/pidgeot/walking/tile009.png"/>
+  <img id="pidgeot-walking-right-two" src="assets/img/pidgeot/walking/tile010.png"/>
+  <img id="pidgeot-walking-right-three" src="assets/img/pidgeot/walking/tile011.png"/>
+  <img id="pidgeot-attacking-down-one" src="assets/img/pidgeot/attacking/tile000.png"/>
+  <img id="pidgeot-attacking-down-two" src="assets/img/pidgeot/attacking/tile001.png"/>
+  <img id="pidgeot-attacking-down-three" src="assets/img/pidgeot/attacking/tile002.png"/>
+  <img id="pidgeot-attacking-up-one" src="assets/img/pidgeot/attacking/tile003.png"/>
+  <img id="pidgeot-attacking-up-two" src="assets/img/pidgeot/attacking/tile004.png"/>
+  <img id="pidgeot-attacking-up-three" src="assets/img/pidgeot/attacking/tile005.png"/>
+  <img id="pidgeot-attacking-left-one" src="assets/img/pidgeot/attacking/tile006.png"/>
+  <img id="pidgeot-attacking-left-two" src="assets/img/pidgeot/attacking/tile007.png"/>
+  <img id="pidgeot-attacking-left-three" src="assets/img/pidgeot/attacking/tile008.png"/>
+  <img id="pidgeot-attacking-right-one" src="assets/img/pidgeot/attacking/tile009.png"/>
+  <img id="pidgeot-attacking-right-two" src="assets/img/pidgeot/attacking/tile010.png"/>
+  <img id="pidgeot-attacking-right-three" src="assets/img/pidgeot/attacking/tile011.png"/>
+  <img id="pidgeot-sleeping-down-one" src="assets/img/pidgeot/sleeping/tile000.png"/>
+  <img id="pidgeot-sleeping-down-two" src="assets/img/pidgeot/sleeping/tile001.png"/>
+  <img id="pidgeot-sleeping-down-three" src="assets/img/pidgeot/sleeping/tile002.png"/>
+  <img id="pidgeot-sleeping-up-one" src="assets/img/pidgeot/sleeping/tile000.png"/>
+  <img id="pidgeot-sleeping-up-two" src="assets/img/pidgeot/sleeping/tile001.png"/>
+  <img id="pidgeot-sleeping-up-three" src="assets/img/pidgeot/sleeping/tile002.png"/>
+  <img id="pidgeot-sleeping-left-one" src="assets/img/pidgeot/sleeping/tile000.png"/>
+  <img id="pidgeot-sleeping-left-two" src="assets/img/pidgeot/sleeping/tile001.png"/>
+  <img id="pidgeot-sleeping-left-three" src="assets/img/pidgeot/sleeping/tile002.png"/>
+  <img id="pidgeot-sleeping-right-one" src="assets/img/pidgeot/sleeping/tile000.png"/>
+  <img id="pidgeot-sleeping-right-two" src="assets/img/pidgeot/sleeping/tile001.png"/>
+  <img id="pidgeot-sleeping-right-three" src="assets/img/pidgeot/sleeping/tile002.png"/>
+
+  <img id="pidgeotto-dead-down-one" src="assets/img/pidgeotto/walking/tile012.png"/>
+  <img id="pidgeotto-walking-down-one" src="assets/img/pidgeotto/walking/tile000.png"/>
+  <img id="pidgeotto-walking-down-two" src="assets/img/pidgeotto/walking/tile001.png"/>
+  <img id="pidgeotto-walking-down-three" src="assets/img/pidgeotto/walking/tile002.png"/>
+  <img id="pidgeotto-walking-up-one" src="assets/img/pidgeotto/walking/tile003.png"/>
+  <img id="pidgeotto-walking-up-two" src="assets/img/pidgeotto/walking/tile004.png"/>
+  <img id="pidgeotto-walking-up-three" src="assets/img/pidgeotto/walking/tile005.png"/>
+  <img id="pidgeotto-walking-left-one" src="assets/img/pidgeotto/walking/tile006.png"/>
+  <img id="pidgeotto-walking-left-two" src="assets/img/pidgeotto/walking/tile007.png"/>
+  <img id="pidgeotto-walking-left-three" src="assets/img/pidgeotto/walking/tile008.png"/>
+  <img id="pidgeotto-walking-right-one" src="assets/img/pidgeotto/walking/tile009.png"/>
+  <img id="pidgeotto-walking-right-two" src="assets/img/pidgeotto/walking/tile010.png"/>
+  <img id="pidgeotto-walking-right-three" src="assets/img/pidgeotto/walking/tile011.png"/>
+  <img id="pidgeotto-attacking-down-one" src="assets/img/pidgeotto/attacking/tile000.png"/>
+  <img id="pidgeotto-attacking-down-two" src="assets/img/pidgeotto/attacking/tile001.png"/>
+  <img id="pidgeotto-attacking-down-three" src="assets/img/pidgeotto/attacking/tile002.png"/>
+  <img id="pidgeotto-attacking-up-one" src="assets/img/pidgeotto/attacking/tile003.png"/>
+  <img id="pidgeotto-attacking-up-two" src="assets/img/pidgeotto/attacking/tile004.png"/>
+  <img id="pidgeotto-attacking-up-three" src="assets/img/pidgeotto/attacking/tile005.png"/>
+  <img id="pidgeotto-attacking-left-one" src="assets/img/pidgeotto/attacking/tile006.png"/>
+  <img id="pidgeotto-attacking-left-two" src="assets/img/pidgeotto/attacking/tile007.png"/>
+  <img id="pidgeotto-attacking-left-three" src="assets/img/pidgeotto/attacking/tile008.png"/>
+  <img id="pidgeotto-attacking-right-one" src="assets/img/pidgeotto/attacking/tile009.png"/>
+  <img id="pidgeotto-attacking-right-two" src="assets/img/pidgeotto/attacking/tile010.png"/>
+  <img id="pidgeotto-attacking-right-three" src="assets/img/pidgeotto/attacking/tile011.png"/>
+  <img id="pidgeotto-sleeping-down-one" src="assets/img/pidgeotto/sleeping/tile000.png"/>
+  <img id="pidgeotto-sleeping-down-two" src="assets/img/pidgeotto/sleeping/tile001.png"/>
+  <img id="pidgeotto-sleeping-down-three" src="assets/img/pidgeotto/sleeping/tile002.png"/>
+  <img id="pidgeotto-sleeping-up-one" src="assets/img/pidgeotto/sleeping/tile000.png"/>
+  <img id="pidgeotto-sleeping-up-two" src="assets/img/pidgeotto/sleeping/tile001.png"/>
+  <img id="pidgeotto-sleeping-up-three" src="assets/img/pidgeotto/sleeping/tile002.png"/>
+  <img id="pidgeotto-sleeping-left-one" src="assets/img/pidgeotto/sleeping/tile000.png"/>
+  <img id="pidgeotto-sleeping-left-two" src="assets/img/pidgeotto/sleeping/tile001.png"/>
+  <img id="pidgeotto-sleeping-left-three" src="assets/img/pidgeotto/sleeping/tile002.png"/>
+  <img id="pidgeotto-sleeping-right-one" src="assets/img/pidgeotto/sleeping/tile000.png"/>
+  <img id="pidgeotto-sleeping-right-two" src="assets/img/pidgeotto/sleeping/tile001.png"/>
+  <img id="pidgeotto-sleeping-right-three" src="assets/img/pidgeotto/sleeping/tile002.png"/>
+
+  <img id="pidgey-dead-down-one" src="assets/img/pidgey/walking/tile012.png"/>
+  <img id="pidgey-walking-down-one" src="assets/img/pidgey/walking/tile000.png"/>
+  <img id="pidgey-walking-down-two" src="assets/img/pidgey/walking/tile001.png"/>
+  <img id="pidgey-walking-down-three" src="assets/img/pidgey/walking/tile002.png"/>
+  <img id="pidgey-walking-up-one" src="assets/img/pidgey/walking/tile003.png"/>
+  <img id="pidgey-walking-up-two" src="assets/img/pidgey/walking/tile004.png"/>
+  <img id="pidgey-walking-up-three" src="assets/img/pidgey/walking/tile005.png"/>
+  <img id="pidgey-walking-left-one" src="assets/img/pidgey/walking/tile006.png"/>
+  <img id="pidgey-walking-left-two" src="assets/img/pidgey/walking/tile007.png"/>
+  <img id="pidgey-walking-left-three" src="assets/img/pidgey/walking/tile008.png"/>
+  <img id="pidgey-walking-right-one" src="assets/img/pidgey/walking/tile009.png"/>
+  <img id="pidgey-walking-right-two" src="assets/img/pidgey/walking/tile010.png"/>
+  <img id="pidgey-walking-right-three" src="assets/img/pidgey/walking/tile011.png"/>
+  <img id="pidgey-attacking-down-one" src="assets/img/pidgey/attacking/tile000.png"/>
+  <img id="pidgey-attacking-down-two" src="assets/img/pidgey/attacking/tile001.png"/>
+  <img id="pidgey-attacking-down-three" src="assets/img/pidgey/attacking/tile002.png"/>
+  <img id="pidgey-attacking-up-one" src="assets/img/pidgey/attacking/tile003.png"/>
+  <img id="pidgey-attacking-up-two" src="assets/img/pidgey/attacking/tile004.png"/>
+  <img id="pidgey-attacking-up-three" src="assets/img/pidgey/attacking/tile005.png"/>
+  <img id="pidgey-attacking-left-one" src="assets/img/pidgey/attacking/tile006.png"/>
+  <img id="pidgey-attacking-left-two" src="assets/img/pidgey/attacking/tile007.png"/>
+  <img id="pidgey-attacking-left-three" src="assets/img/pidgey/attacking/tile008.png"/>
+  <img id="pidgey-attacking-right-one" src="assets/img/pidgey/attacking/tile009.png"/>
+  <img id="pidgey-attacking-right-two" src="assets/img/pidgey/attacking/tile010.png"/>
+  <img id="pidgey-attacking-right-three" src="assets/img/pidgey/attacking/tile011.png"/>
+  <img id="pidgey-sleeping-down-one" src="assets/img/pidgey/sleeping/tile000.png"/>
+  <img id="pidgey-sleeping-down-two" src="assets/img/pidgey/sleeping/tile001.png"/>
+  <img id="pidgey-sleeping-down-three" src="assets/img/pidgey/sleeping/tile002.png"/>
+  <img id="pidgey-sleeping-up-one" src="assets/img/pidgey/sleeping/tile000.png"/>
+  <img id="pidgey-sleeping-up-two" src="assets/img/pidgey/sleeping/tile001.png"/>
+  <img id="pidgey-sleeping-up-three" src="assets/img/pidgey/sleeping/tile002.png"/>
+  <img id="pidgey-sleeping-left-one" src="assets/img/pidgey/sleeping/tile000.png"/>
+  <img id="pidgey-sleeping-left-two" src="assets/img/pidgey/sleeping/tile001.png"/>
+  <img id="pidgey-sleeping-left-three" src="assets/img/pidgey/sleeping/tile002.png"/>
+  <img id="pidgey-sleeping-right-one" src="assets/img/pidgey/sleeping/tile000.png"/>
+  <img id="pidgey-sleeping-right-two" src="assets/img/pidgey/sleeping/tile001.png"/>
+  <img id="pidgey-sleeping-right-three" src="assets/img/pidgey/sleeping/tile002.png"/>
+
+  <img id="pikachu-dead-down-one" src="assets/img/pikachu/walking/tile012.png"/>
+  <img id="pikachu-walking-down-one" src="assets/img/pikachu/walking/tile000.png"/>
+  <img id="pikachu-walking-down-two" src="assets/img/pikachu/walking/tile001.png"/>
+  <img id="pikachu-walking-down-three" src="assets/img/pikachu/walking/tile002.png"/>
+  <img id="pikachu-walking-up-one" src="assets/img/pikachu/walking/tile003.png"/>
+  <img id="pikachu-walking-up-two" src="assets/img/pikachu/walking/tile004.png"/>
+  <img id="pikachu-walking-up-three" src="assets/img/pikachu/walking/tile005.png"/>
+  <img id="pikachu-walking-left-one" src="assets/img/pikachu/walking/tile006.png"/>
+  <img id="pikachu-walking-left-two" src="assets/img/pikachu/walking/tile007.png"/>
+  <img id="pikachu-walking-left-three" src="assets/img/pikachu/walking/tile008.png"/>
+  <img id="pikachu-walking-right-one" src="assets/img/pikachu/walking/tile009.png"/>
+  <img id="pikachu-walking-right-two" src="assets/img/pikachu/walking/tile010.png"/>
+  <img id="pikachu-walking-right-three" src="assets/img/pikachu/walking/tile011.png"/>
+  <img id="pikachu-attacking-down-one" src="assets/img/pikachu/attacking/tile000.png"/>
+  <img id="pikachu-attacking-down-two" src="assets/img/pikachu/attacking/tile001.png"/>
+  <img id="pikachu-attacking-down-three" src="assets/img/pikachu/attacking/tile002.png"/>
+  <img id="pikachu-attacking-up-one" src="assets/img/pikachu/attacking/tile003.png"/>
+  <img id="pikachu-attacking-up-two" src="assets/img/pikachu/attacking/tile004.png"/>
+  <img id="pikachu-attacking-up-three" src="assets/img/pikachu/attacking/tile005.png"/>
+  <img id="pikachu-attacking-left-one" src="assets/img/pikachu/attacking/tile006.png"/>
+  <img id="pikachu-attacking-left-two" src="assets/img/pikachu/attacking/tile007.png"/>
+  <img id="pikachu-attacking-left-three" src="assets/img/pikachu/attacking/tile008.png"/>
+  <img id="pikachu-attacking-right-one" src="assets/img/pikachu/attacking/tile009.png"/>
+  <img id="pikachu-attacking-right-two" src="assets/img/pikachu/attacking/tile010.png"/>
+  <img id="pikachu-attacking-right-three" src="assets/img/pikachu/attacking/tile011.png"/>
+  <img id="pikachu-sleeping-down-one" src="assets/img/pikachu/sleeping/tile000.png"/>
+  <img id="pikachu-sleeping-down-two" src="assets/img/pikachu/sleeping/tile001.png"/>
+  <img id="pikachu-sleeping-down-three" src="assets/img/pikachu/sleeping/tile002.png"/>
+  <img id="pikachu-sleeping-up-one" src="assets/img/pikachu/sleeping/tile000.png"/>
+  <img id="pikachu-sleeping-up-two" src="assets/img/pikachu/sleeping/tile001.png"/>
+  <img id="pikachu-sleeping-up-three" src="assets/img/pikachu/sleeping/tile002.png"/>
+  <img id="pikachu-sleeping-left-one" src="assets/img/pikachu/sleeping/tile000.png"/>
+  <img id="pikachu-sleeping-left-two" src="assets/img/pikachu/sleeping/tile001.png"/>
+  <img id="pikachu-sleeping-left-three" src="assets/img/pikachu/sleeping/tile002.png"/>
+  <img id="pikachu-sleeping-right-one" src="assets/img/pikachu/sleeping/tile000.png"/>
+  <img id="pikachu-sleeping-right-two" src="assets/img/pikachu/sleeping/tile001.png"/>
+  <img id="pikachu-sleeping-right-three" src="assets/img/pikachu/sleeping/tile002.png"/>
+
+  <img id="raichu-dead-down-one" src="assets/img/raichu/walking/tile012.png"/>
+  <img id="raichu-walking-down-one" src="assets/img/raichu/walking/tile000.png"/>
+  <img id="raichu-walking-down-two" src="assets/img/raichu/walking/tile001.png"/>
+  <img id="raichu-walking-down-three" src="assets/img/raichu/walking/tile002.png"/>
+  <img id="raichu-walking-up-one" src="assets/img/raichu/walking/tile003.png"/>
+  <img id="raichu-walking-up-two" src="assets/img/raichu/walking/tile004.png"/>
+  <img id="raichu-walking-up-three" src="assets/img/raichu/walking/tile005.png"/>
+  <img id="raichu-walking-left-one" src="assets/img/raichu/walking/tile006.png"/>
+  <img id="raichu-walking-left-two" src="assets/img/raichu/walking/tile007.png"/>
+  <img id="raichu-walking-left-three" src="assets/img/raichu/walking/tile008.png"/>
+  <img id="raichu-walking-right-one" src="assets/img/raichu/walking/tile009.png"/>
+  <img id="raichu-walking-right-two" src="assets/img/raichu/walking/tile010.png"/>
+  <img id="raichu-walking-right-three" src="assets/img/raichu/walking/tile011.png"/>
+  <img id="raichu-attacking-down-one" src="assets/img/raichu/attacking/tile000.png"/>
+  <img id="raichu-attacking-down-two" src="assets/img/raichu/attacking/tile001.png"/>
+  <img id="raichu-attacking-down-three" src="assets/img/raichu/attacking/tile002.png"/>
+  <img id="raichu-attacking-up-one" src="assets/img/raichu/attacking/tile003.png"/>
+  <img id="raichu-attacking-up-two" src="assets/img/raichu/attacking/tile004.png"/>
+  <img id="raichu-attacking-up-three" src="assets/img/raichu/attacking/tile005.png"/>
+  <img id="raichu-attacking-left-one" src="assets/img/raichu/attacking/tile006.png"/>
+  <img id="raichu-attacking-left-two" src="assets/img/raichu/attacking/tile007.png"/>
+  <img id="raichu-attacking-left-three" src="assets/img/raichu/attacking/tile008.png"/>
+  <img id="raichu-attacking-right-one" src="assets/img/raichu/attacking/tile009.png"/>
+  <img id="raichu-attacking-right-two" src="assets/img/raichu/attacking/tile010.png"/>
+  <img id="raichu-attacking-right-three" src="assets/img/raichu/attacking/tile011.png"/>
+  <img id="raichu-sleeping-down-one" src="assets/img/raichu/sleeping/tile000.png"/>
+  <img id="raichu-sleeping-down-two" src="assets/img/raichu/sleeping/tile001.png"/>
+  <img id="raichu-sleeping-down-three" src="assets/img/raichu/sleeping/tile002.png"/>
+  <img id="raichu-sleeping-up-one" src="assets/img/raichu/sleeping/tile000.png"/>
+  <img id="raichu-sleeping-up-two" src="assets/img/raichu/sleeping/tile001.png"/>
+  <img id="raichu-sleeping-up-three" src="assets/img/raichu/sleeping/tile002.png"/>
+  <img id="raichu-sleeping-left-one" src="assets/img/raichu/sleeping/tile000.png"/>
+  <img id="raichu-sleeping-left-two" src="assets/img/raichu/sleeping/tile001.png"/>
+  <img id="raichu-sleeping-left-three" src="assets/img/raichu/sleeping/tile002.png"/>
+  <img id="raichu-sleeping-right-one" src="assets/img/raichu/sleeping/tile000.png"/>
+  <img id="raichu-sleeping-right-two" src="assets/img/raichu/sleeping/tile001.png"/>
+  <img id="raichu-sleeping-right-three" src="assets/img/raichu/sleeping/tile002.png"/>
+
+   <img id="sandshrew-dead-down-one" src="assets/img/sandshrew/walking/tile012.png"/>
+  <img id="sandshrew-walking-down-one" src="assets/img/sandshrew/walking/tile000.png"/>
+  <img id="sandshrew-walking-down-two" src="assets/img/sandshrew/walking/tile001.png"/>
+  <img id="sandshrew-walking-down-three" src="assets/img/sandshrew/walking/tile002.png"/>
+  <img id="sandshrew-walking-up-one" src="assets/img/sandshrew/walking/tile003.png"/>
+  <img id="sandshrew-walking-up-two" src="assets/img/sandshrew/walking/tile004.png"/>
+  <img id="sandshrew-walking-up-three" src="assets/img/sandshrew/walking/tile005.png"/>
+  <img id="sandshrew-walking-left-one" src="assets/img/sandshrew/walking/tile006.png"/>
+  <img id="sandshrew-walking-left-two" src="assets/img/sandshrew/walking/tile007.png"/>
+  <img id="sandshrew-walking-left-three" src="assets/img/sandshrew/walking/tile008.png"/>
+  <img id="sandshrew-walking-right-one" src="assets/img/sandshrew/walking/tile009.png"/>
+  <img id="sandshrew-walking-right-two" src="assets/img/sandshrew/walking/tile010.png"/>
+  <img id="sandshrew-walking-right-three" src="assets/img/sandshrew/walking/tile011.png"/>
+  <img id="sandshrew-attacking-down-one" src="assets/img/sandshrew/attacking/tile000.png"/>
+  <img id="sandshrew-attacking-down-two" src="assets/img/sandshrew/attacking/tile001.png"/>
+  <img id="sandshrew-attacking-down-three" src="assets/img/sandshrew/attacking/tile002.png"/>
+  <img id="sandshrew-attacking-up-one" src="assets/img/sandshrew/attacking/tile003.png"/>
+  <img id="sandshrew-attacking-up-two" src="assets/img/sandshrew/attacking/tile004.png"/>
+  <img id="sandshrew-attacking-up-three" src="assets/img/sandshrew/attacking/tile005.png"/>
+  <img id="sandshrew-attacking-left-one" src="assets/img/sandshrew/attacking/tile006.png"/>
+  <img id="sandshrew-attacking-left-two" src="assets/img/sandshrew/attacking/tile007.png"/>
+  <img id="sandshrew-attacking-left-three" src="assets/img/sandshrew/attacking/tile008.png"/>
+  <img id="sandshrew-attacking-right-one" src="assets/img/sandshrew/attacking/tile009.png"/>
+  <img id="sandshrew-attacking-right-two" src="assets/img/sandshrew/attacking/tile010.png"/>
+  <img id="sandshrew-attacking-right-three" src="assets/img/sandshrew/attacking/tile011.png"/>
+  <img id="sandshrew-sleeping-down-one" src="assets/img/sandshrew/sleeping/tile000.png"/>
+  <img id="sandshrew-sleeping-down-two" src="assets/img/sandshrew/sleeping/tile001.png"/>
+  <img id="sandshrew-sleeping-down-three" src="assets/img/sandshrew/sleeping/tile002.png"/>
+  <img id="sandshrew-sleeping-up-one" src="assets/img/sandshrew/sleeping/tile000.png"/>
+  <img id="sandshrew-sleeping-up-two" src="assets/img/sandshrew/sleeping/tile001.png"/>
+  <img id="sandshrew-sleeping-up-three" src="assets/img/sandshrew/sleeping/tile002.png"/>
+  <img id="sandshrew-sleeping-left-one" src="assets/img/sandshrew/sleeping/tile000.png"/>
+  <img id="sandshrew-sleeping-left-two" src="assets/img/sandshrew/sleeping/tile001.png"/>
+  <img id="sandshrew-sleeping-left-three" src="assets/img/sandshrew/sleeping/tile002.png"/>
+  <img id="sandshrew-sleeping-right-one" src="assets/img/sandshrew/sleeping/tile000.png"/>
+  <img id="sandshrew-sleeping-right-two" src="assets/img/sandshrew/sleeping/tile001.png"/>
+  <img id="sandshrew-sleeping-right-three" src="assets/img/sandshrew/sleeping/tile002.png"/>
+
+
+<img id="sandslash-dead-down-one" src="assets/img/sandslash/walking/tile012.png"/>
+  <img id="sandslash-walking-down-one" src="assets/img/sandslash/walking/tile000.png"/>
+  <img id="sandslash-walking-down-two" src="assets/img/sandslash/walking/tile001.png"/>
+  <img id="sandslash-walking-down-three" src="assets/img/sandslash/walking/tile002.png"/>
+  <img id="sandslash-walking-up-one" src="assets/img/sandslash/walking/tile003.png"/>
+  <img id="sandslash-walking-up-two" src="assets/img/sandslash/walking/tile004.png"/>
+  <img id="sandslash-walking-up-three" src="assets/img/sandslash/walking/tile005.png"/>
+  <img id="sandslash-walking-left-one" src="assets/img/sandslash/walking/tile006.png"/>
+  <img id="sandslash-walking-left-two" src="assets/img/sandslash/walking/tile007.png"/>
+  <img id="sandslash-walking-left-three" src="assets/img/sandslash/walking/tile008.png"/>
+  <img id="sandslash-walking-right-one" src="assets/img/sandslash/walking/tile009.png"/>
+  <img id="sandslash-walking-right-two" src="assets/img/sandslash/walking/tile010.png"/>
+  <img id="sandslash-walking-right-three" src="assets/img/sandslash/walking/tile011.png"/>
+  <img id="sandslash-attacking-down-one" src="assets/img/sandslash/attacking/tile000.png"/>
+  <img id="sandslash-attacking-down-two" src="assets/img/sandslash/attacking/tile001.png"/>
+  <img id="sandslash-attacking-down-three" src="assets/img/sandslash/attacking/tile002.png"/>
+  <img id="sandslash-attacking-up-one" src="assets/img/sandslash/attacking/tile003.png"/>
+  <img id="sandslash-attacking-up-two" src="assets/img/sandslash/attacking/tile004.png"/>
+  <img id="sandslash-attacking-up-three" src="assets/img/sandslash/attacking/tile005.png"/>
+  <img id="sandslash-attacking-left-one" src="assets/img/sandslash/attacking/tile006.png"/>
+  <img id="sandslash-attacking-left-two" src="assets/img/sandslash/attacking/tile007.png"/>
+  <img id="sandslash-attacking-left-three" src="assets/img/sandslash/attacking/tile008.png"/>
+  <img id="sandslash-attacking-right-one" src="assets/img/sandslash/attacking/tile009.png"/>
+  <img id="sandslash-attacking-right-two" src="assets/img/sandslash/attacking/tile010.png"/>
+  <img id="sandslash-attacking-right-three" src="assets/img/sandslash/attacking/tile011.png"/>
+  <img id="sandslash-sleeping-down-one" src="assets/img/sandslash/sleeping/tile000.png"/>
+  <img id="sandslash-sleeping-down-two" src="assets/img/sandslash/sleeping/tile001.png"/>
+  <img id="sandslash-sleeping-down-three" src="assets/img/sandslash/sleeping/tile002.png"/>
+  <img id="sandslash-sleeping-up-one" src="assets/img/sandslash/sleeping/tile000.png"/>
+  <img id="sandslash-sleeping-up-two" src="assets/img/sandslash/sleeping/tile001.png"/>
+  <img id="sandslash-sleeping-up-three" src="assets/img/sandslash/sleeping/tile002.png"/>
+  <img id="sandslash-sleeping-left-one" src="assets/img/sandslash/sleeping/tile000.png"/>
+  <img id="sandslash-sleeping-left-two" src="assets/img/sandslash/sleeping/tile001.png"/>
+  <img id="sandslash-sleeping-left-three" src="assets/img/sandslash/sleeping/tile002.png"/>
+  <img id="sandslash-sleeping-right-one" src="assets/img/sandslash/sleeping/tile000.png"/>
+  <img id="sandslash-sleeping-right-two" src="assets/img/sandslash/sleeping/tile001.png"/>
+  <img id="sandslash-sleeping-right-three" src="assets/img/sandslash/sleeping/tile002.png"/>
+
+  <img id="scyther-dead-down-one" src="assets/img/scyther/walking/tile012.png"/>
+  <img id="scyther-walking-down-one" src="assets/img/scyther/walking/tile000.png"/>
+  <img id="scyther-walking-down-two" src="assets/img/scyther/walking/tile001.png"/>
+  <img id="scyther-walking-down-three" src="assets/img/scyther/walking/tile002.png"/>
+  <img id="scyther-walking-up-one" src="assets/img/scyther/walking/tile003.png"/>
+  <img id="scyther-walking-up-two" src="assets/img/scyther/walking/tile004.png"/>
+  <img id="scyther-walking-up-three" src="assets/img/scyther/walking/tile005.png"/>
+  <img id="scyther-walking-left-one" src="assets/img/scyther/walking/tile006.png"/>
+  <img id="scyther-walking-left-two" src="assets/img/scyther/walking/tile007.png"/>
+  <img id="scyther-walking-left-three" src="assets/img/scyther/walking/tile008.png"/>
+  <img id="scyther-walking-right-one" src="assets/img/scyther/walking/tile009.png"/>
+  <img id="scyther-walking-right-two" src="assets/img/scyther/walking/tile010.png"/>
+  <img id="scyther-walking-right-three" src="assets/img/scyther/walking/tile011.png"/>
+  <img id="scyther-attacking-down-one" src="assets/img/scyther/attacking/tile000.png"/>
+  <img id="scyther-attacking-down-two" src="assets/img/scyther/attacking/tile001.png"/>
+  <img id="scyther-attacking-down-three" src="assets/img/scyther/attacking/tile002.png"/>
+  <img id="scyther-attacking-up-one" src="assets/img/scyther/attacking/tile003.png"/>
+  <img id="scyther-attacking-up-two" src="assets/img/scyther/attacking/tile004.png"/>
+  <img id="scyther-attacking-up-three" src="assets/img/scyther/attacking/tile005.png"/>
+  <img id="scyther-attacking-left-one" src="assets/img/scyther/attacking/tile006.png"/>
+  <img id="scyther-attacking-left-two" src="assets/img/scyther/attacking/tile007.png"/>
+  <img id="scyther-attacking-left-three" src="assets/img/scyther/attacking/tile008.png"/>
+  <img id="scyther-attacking-right-one" src="assets/img/scyther/attacking/tile009.png"/>
+  <img id="scyther-attacking-right-two" src="assets/img/scyther/attacking/tile010.png"/>
+  <img id="scyther-attacking-right-three" src="assets/img/scyther/attacking/tile011.png"/>
+  <img id="scyther-sleeping-down-one" src="assets/img/scyther/sleeping/tile000.png"/>
+  <img id="scyther-sleeping-down-two" src="assets/img/scyther/sleeping/tile001.png"/>
+  <img id="scyther-sleeping-down-three" src="assets/img/scyther/sleeping/tile002.png"/>
+  <img id="scyther-sleeping-up-one" src="assets/img/scyther/sleeping/tile000.png"/>
+  <img id="scyther-sleeping-up-two" src="assets/img/scyther/sleeping/tile001.png"/>
+  <img id="scyther-sleeping-up-three" src="assets/img/scyther/sleeping/tile002.png"/>
+  <img id="scyther-sleeping-left-one" src="assets/img/scyther/sleeping/tile000.png"/>
+  <img id="scyther-sleeping-left-two" src="assets/img/scyther/sleeping/tile001.png"/>
+  <img id="scyther-sleeping-left-three" src="assets/img/scyther/sleeping/tile002.png"/>
+  <img id="scyther-sleeping-right-one" src="assets/img/scyther/sleeping/tile000.png"/>
+  <img id="scyther-sleeping-right-two" src="assets/img/scyther/sleeping/tile001.png"/>
+  <img id="scyther-sleeping-right-three" src="assets/img/scyther/sleeping/tile002.png"/>
+
+  <img id="squirtle-dead-down-one" src="assets/img/squirtle/walking/tile012.png"/>
+  <img id="squirtle-walking-down-one" src="assets/img/squirtle/walking/tile000.png"/>
+  <img id="squirtle-walking-down-two" src="assets/img/squirtle/walking/tile001.png"/>
+  <img id="squirtle-walking-down-three" src="assets/img/squirtle/walking/tile002.png"/>
+  <img id="squirtle-walking-up-one" src="assets/img/squirtle/walking/tile003.png"/>
+  <img id="squirtle-walking-up-two" src="assets/img/squirtle/walking/tile004.png"/>
+  <img id="squirtle-walking-up-three" src="assets/img/squirtle/walking/tile005.png"/>
+  <img id="squirtle-walking-left-one" src="assets/img/squirtle/walking/tile006.png"/>
+  <img id="squirtle-walking-left-two" src="assets/img/squirtle/walking/tile007.png"/>
+  <img id="squirtle-walking-left-three" src="assets/img/squirtle/walking/tile008.png"/>
+  <img id="squirtle-walking-right-one" src="assets/img/squirtle/walking/tile009.png"/>
+  <img id="squirtle-walking-right-two" src="assets/img/squirtle/walking/tile010.png"/>
+  <img id="squirtle-walking-right-three" src="assets/img/squirtle/walking/tile011.png"/>
+  <img id="squirtle-attacking-down-one" src="assets/img/squirtle/attacking/tile000.png"/>
+  <img id="squirtle-attacking-down-two" src="assets/img/squirtle/attacking/tile001.png"/>
+  <img id="squirtle-attacking-down-three" src="assets/img/squirtle/attacking/tile002.png"/>
+  <img id="squirtle-attacking-up-one" src="assets/img/squirtle/attacking/tile003.png"/>
+  <img id="squirtle-attacking-up-two" src="assets/img/squirtle/attacking/tile004.png"/>
+  <img id="squirtle-attacking-up-three" src="assets/img/squirtle/attacking/tile005.png"/>
+  <img id="squirtle-attacking-left-one" src="assets/img/squirtle/attacking/tile006.png"/>
+  <img id="squirtle-attacking-left-two" src="assets/img/squirtle/attacking/tile007.png"/>
+  <img id="squirtle-attacking-left-three" src="assets/img/squirtle/attacking/tile008.png"/>
+  <img id="squirtle-attacking-right-one" src="assets/img/squirtle/attacking/tile009.png"/>
+  <img id="squirtle-attacking-right-two" src="assets/img/squirtle/attacking/tile010.png"/>
+  <img id="squirtle-attacking-right-three" src="assets/img/squirtle/attacking/tile011.png"/>
+  <img id="squirtle-sleeping-down-one" src="assets/img/squirtle/sleeping/tile000.png"/>
+  <img id="squirtle-sleeping-down-two" src="assets/img/squirtle/sleeping/tile001.png"/>
+  <img id="squirtle-sleeping-down-three" src="assets/img/squirtle/sleeping/tile002.png"/>
+  <img id="squirtle-sleeping-up-one" src="assets/img/squirtle/sleeping/tile000.png"/>
+  <img id="squirtle-sleeping-up-two" src="assets/img/squirtle/sleeping/tile001.png"/>
+  <img id="squirtle-sleeping-up-three" src="assets/img/squirtle/sleeping/tile002.png"/>
+  <img id="squirtle-sleeping-left-one" src="assets/img/squirtle/sleeping/tile000.png"/>
+  <img id="squirtle-sleeping-left-two" src="assets/img/squirtle/sleeping/tile001.png"/>
+  <img id="squirtle-sleeping-left-three" src="assets/img/squirtle/sleeping/tile002.png"/>
+  <img id="squirtle-sleeping-right-one" src="assets/img/squirtle/sleeping/tile000.png"/>
+  <img id="squirtle-sleeping-right-two" src="assets/img/squirtle/sleeping/tile001.png"/>
+  <img id="squirtle-sleeping-right-three" src="assets/img/squirtle/sleeping/tile002.png"/>
+
+  <img id="venonat-dead-down-one" src="assets/img/venonat/walking/tile012.png"/>
+  <img id="venonat-walking-down-one" src="assets/img/venonat/walking/tile000.png"/>
+  <img id="venonat-walking-down-two" src="assets/img/venonat/walking/tile001.png"/>
+  <img id="venonat-walking-down-three" src="assets/img/venonat/walking/tile002.png"/>
+  <img id="venonat-walking-up-one" src="assets/img/venonat/walking/tile003.png"/>
+  <img id="venonat-walking-up-two" src="assets/img/venonat/walking/tile004.png"/>
+  <img id="venonat-walking-up-three" src="assets/img/venonat/walking/tile005.png"/>
+  <img id="venonat-walking-left-one" src="assets/img/venonat/walking/tile006.png"/>
+  <img id="venonat-walking-left-two" src="assets/img/venonat/walking/tile007.png"/>
+  <img id="venonat-walking-left-three" src="assets/img/venonat/walking/tile008.png"/>
+  <img id="venonat-walking-right-one" src="assets/img/venonat/walking/tile009.png"/>
+  <img id="venonat-walking-right-two" src="assets/img/venonat/walking/tile010.png"/>
+  <img id="venonat-walking-right-three" src="assets/img/venonat/walking/tile011.png"/>
+  <img id="venonat-attacking-down-one" src="assets/img/venonat/attacking/tile000.png"/>
+  <img id="venonat-attacking-down-two" src="assets/img/venonat/attacking/tile001.png"/>
+  <img id="venonat-attacking-down-three" src="assets/img/venonat/attacking/tile002.png"/>
+  <img id="venonat-attacking-up-one" src="assets/img/venonat/attacking/tile003.png"/>
+  <img id="venonat-attacking-up-two" src="assets/img/venonat/attacking/tile004.png"/>
+  <img id="venonat-attacking-up-three" src="assets/img/venonat/attacking/tile005.png"/>
+  <img id="venonat-attacking-left-one" src="assets/img/venonat/attacking/tile006.png"/>
+  <img id="venonat-attacking-left-two" src="assets/img/venonat/attacking/tile007.png"/>
+  <img id="venonat-attacking-left-three" src="assets/img/venonat/attacking/tile008.png"/>
+  <img id="venonat-attacking-right-one" src="assets/img/venonat/attacking/tile009.png"/>
+  <img id="venonat-attacking-right-two" src="assets/img/venonat/attacking/tile010.png"/>
+  <img id="venonat-attacking-right-three" src="assets/img/venonat/attacking/tile011.png"/>
+  <img id="venonat-sleeping-down-one" src="assets/img/venonat/sleeping/tile000.png"/>
+  <img id="venonat-sleeping-down-two" src="assets/img/venonat/sleeping/tile001.png"/>
+  <img id="venonat-sleeping-down-three" src="assets/img/venonat/sleeping/tile002.png"/>
+  <img id="venonat-sleeping-up-one" src="assets/img/venonat/sleeping/tile000.png"/>
+  <img id="venonat-sleeping-up-two" src="assets/img/venonat/sleeping/tile001.png"/>
+  <img id="venonat-sleeping-up-three" src="assets/img/venonat/sleeping/tile002.png"/>
+  <img id="venonat-sleeping-left-one" src="assets/img/venonat/sleeping/tile000.png"/>
+  <img id="venonat-sleeping-left-two" src="assets/img/venonat/sleeping/tile001.png"/>
+  <img id="venonat-sleeping-left-three" src="assets/img/venonat/sleeping/tile002.png"/>
+  <img id="venonat-sleeping-right-one" src="assets/img/venonat/sleeping/tile000.png"/>
+  <img id="venonat-sleeping-right-two" src="assets/img/venonat/sleeping/tile001.png"/>
+  <img id="venonat-sleeping-right-three" src="assets/img/venonat/sleeping/tile002.png"/>
+
+  <img id="venosaur-dead-down-one" src="assets/img/venosaur/walking/tile012.png"/>
+  <img id="venosaur-walking-down-one" src="assets/img/venosaur/walking/tile000.png"/>
+  <img id="venosaur-walking-down-two" src="assets/img/venosaur/walking/tile001.png"/>
+  <img id="venosaur-walking-down-three" src="assets/img/venosaur/walking/tile002.png"/>
+  <img id="venosaur-walking-up-one" src="assets/img/venosaur/walking/tile003.png"/>
+  <img id="venosaur-walking-up-two" src="assets/img/venosaur/walking/tile004.png"/>
+  <img id="venosaur-walking-up-three" src="assets/img/venosaur/walking/tile005.png"/>
+  <img id="venosaur-walking-left-one" src="assets/img/venosaur/walking/tile006.png"/>
+  <img id="venosaur-walking-left-two" src="assets/img/venosaur/walking/tile007.png"/>
+  <img id="venosaur-walking-left-three" src="assets/img/venosaur/walking/tile008.png"/>
+  <img id="venosaur-walking-right-one" src="assets/img/venosaur/walking/tile009.png"/>
+  <img id="venosaur-walking-right-two" src="assets/img/venosaur/walking/tile010.png"/>
+  <img id="venosaur-walking-right-three" src="assets/img/venosaur/walking/tile011.png"/>
+  <img id="venosaur-attacking-down-one" src="assets/img/venosaur/attacking/tile000.png"/>
+  <img id="venosaur-attacking-down-two" src="assets/img/venosaur/attacking/tile001.png"/>
+  <img id="venosaur-attacking-down-three" src="assets/img/venosaur/attacking/tile002.png"/>
+  <img id="venosaur-attacking-up-one" src="assets/img/venosaur/attacking/tile003.png"/>
+  <img id="venosaur-attacking-up-two" src="assets/img/venosaur/attacking/tile004.png"/>
+  <img id="venosaur-attacking-up-three" src="assets/img/venosaur/attacking/tile005.png"/>
+  <img id="venosaur-attacking-left-one" src="assets/img/venosaur/attacking/tile006.png"/>
+  <img id="venosaur-attacking-left-two" src="assets/img/venosaur/attacking/tile007.png"/>
+  <img id="venosaur-attacking-left-three" src="assets/img/venosaur/attacking/tile008.png"/>
+  <img id="venosaur-attacking-right-one" src="assets/img/venosaur/attacking/tile009.png"/>
+  <img id="venosaur-attacking-right-two" src="assets/img/venosaur/attacking/tile010.png"/>
+  <img id="venosaur-attacking-right-three" src="assets/img/venosaur/attacking/tile011.png"/>
+  <img id="venosaur-sleeping-down-one" src="assets/img/venosaur/sleeping/tile000.png"/>
+  <img id="venosaur-sleeping-down-two" src="assets/img/venosaur/sleeping/tile001.png"/>
+  <img id="venosaur-sleeping-down-three" src="assets/img/venosaur/sleeping/tile002.png"/>
+  <img id="venosaur-sleeping-up-one" src="assets/img/venosaur/sleeping/tile000.png"/>
+  <img id="venosaur-sleeping-up-two" src="assets/img/venosaur/sleeping/tile001.png"/>
+  <img id="venosaur-sleeping-up-three" src="assets/img/venosaur/sleeping/tile002.png"/>
+  <img id="venosaur-sleeping-left-one" src="assets/img/venosaur/sleeping/tile000.png"/>
+  <img id="venosaur-sleeping-left-two" src="assets/img/venosaur/sleeping/tile001.png"/>
+  <img id="venosaur-sleeping-left-three" src="assets/img/venosaur/sleeping/tile002.png"/>
+  <img id="venosaur-sleeping-right-one" src="assets/img/venosaur/sleeping/tile000.png"/>
+  <img id="venosaur-sleeping-right-two" src="assets/img/venosaur/sleeping/tile001.png"/>
+  <img id="venosaur-sleeping-right-three" src="assets/img/venosaur/sleeping/tile002.png"/>
+
+  <img id="vileplume-dead-down-one" src="assets/img/vileplume/walking/tile012.png"/>
+  <img id="vileplume-walking-down-one" src="assets/img/vileplume/walking/tile000.png"/>
+  <img id="vileplume-walking-down-two" src="assets/img/vileplume/walking/tile001.png"/>
+  <img id="vileplume-walking-down-three" src="assets/img/vileplume/walking/tile002.png"/>
+  <img id="vileplume-walking-up-one" src="assets/img/vileplume/walking/tile003.png"/>
+  <img id="vileplume-walking-up-two" src="assets/img/vileplume/walking/tile004.png"/>
+  <img id="vileplume-walking-up-three" src="assets/img/vileplume/walking/tile005.png"/>
+  <img id="vileplume-walking-left-one" src="assets/img/vileplume/walking/tile006.png"/>
+  <img id="vileplume-walking-left-two" src="assets/img/vileplume/walking/tile007.png"/>
+  <img id="vileplume-walking-left-three" src="assets/img/vileplume/walking/tile008.png"/>
+  <img id="vileplume-walking-right-one" src="assets/img/vileplume/walking/tile009.png"/>
+  <img id="vileplume-walking-right-two" src="assets/img/vileplume/walking/tile010.png"/>
+  <img id="vileplume-walking-right-three" src="assets/img/vileplume/walking/tile011.png"/>
+  <img id="vileplume-attacking-down-one" src="assets/img/vileplume/attacking/tile000.png"/>
+  <img id="vileplume-attacking-down-two" src="assets/img/vileplume/attacking/tile001.png"/>
+  <img id="vileplume-attacking-down-three" src="assets/img/vileplume/attacking/tile002.png"/>
+  <img id="vileplume-attacking-up-one" src="assets/img/vileplume/attacking/tile003.png"/>
+  <img id="vileplume-attacking-up-two" src="assets/img/vileplume/attacking/tile004.png"/>
+  <img id="vileplume-attacking-up-three" src="assets/img/vileplume/attacking/tile005.png"/>
+  <img id="vileplume-attacking-left-one" src="assets/img/vileplume/attacking/tile006.png"/>
+  <img id="vileplume-attacking-left-two" src="assets/img/vileplume/attacking/tile007.png"/>
+  <img id="vileplume-attacking-left-three" src="assets/img/vileplume/attacking/tile008.png"/>
+  <img id="vileplume-attacking-right-one" src="assets/img/vileplume/attacking/tile009.png"/>
+  <img id="vileplume-attacking-right-two" src="assets/img/vileplume/attacking/tile010.png"/>
+  <img id="vileplume-attacking-right-three" src="assets/img/vileplume/attacking/tile011.png"/>
+  <img id="vileplume-sleeping-down-one" src="assets/img/vileplume/sleeping/tile000.png"/>
+  <img id="vileplume-sleeping-down-two" src="assets/img/vileplume/sleeping/tile001.png"/>
+  <img id="vileplume-sleeping-down-three" src="assets/img/vileplume/sleeping/tile002.png"/>
+  <img id="vileplume-sleeping-up-one" src="assets/img/vileplume/sleeping/tile000.png"/>
+  <img id="vileplume-sleeping-up-two" src="assets/img/vileplume/sleeping/tile001.png"/>
+  <img id="vileplume-sleeping-up-three" src="assets/img/vileplume/sleeping/tile002.png"/>
+  <img id="vileplume-sleeping-left-one" src="assets/img/vileplume/sleeping/tile000.png"/>
+  <img id="vileplume-sleeping-left-two" src="assets/img/vileplume/sleeping/tile001.png"/>
+  <img id="vileplume-sleeping-left-three" src="assets/img/vileplume/sleeping/tile002.png"/>
+  <img id="vileplume-sleeping-right-one" src="assets/img/vileplume/sleeping/tile000.png"/>
+  <img id="vileplume-sleeping-right-two" src="assets/img/vileplume/sleeping/tile001.png"/>
+  <img id="vileplume-sleeping-right-three" src="assets/img/vileplume/sleeping/tile002.png"/>
+
+  <img id="vulpix-dead-down-one" src="assets/img/vulpix/walking/tile012.png"/>
+  <img id="vulpix-walking-down-one" src="assets/img/vulpix/walking/tile000.png"/>
+  <img id="vulpix-walking-down-two" src="assets/img/vulpix/walking/tile001.png"/>
+  <img id="vulpix-walking-down-three" src="assets/img/vulpix/walking/tile002.png"/>
+  <img id="vulpix-walking-up-one" src="assets/img/vulpix/walking/tile003.png"/>
+  <img id="vulpix-walking-up-two" src="assets/img/vulpix/walking/tile004.png"/>
+  <img id="vulpix-walking-up-three" src="assets/img/vulpix/walking/tile005.png"/>
+  <img id="vulpix-walking-left-one" src="assets/img/vulpix/walking/tile006.png"/>
+  <img id="vulpix-walking-left-two" src="assets/img/vulpix/walking/tile007.png"/>
+  <img id="vulpix-walking-left-three" src="assets/img/vulpix/walking/tile008.png"/>
+  <img id="vulpix-walking-right-one" src="assets/img/vulpix/walking/tile009.png"/>
+  <img id="vulpix-walking-right-two" src="assets/img/vulpix/walking/tile010.png"/>
+  <img id="vulpix-walking-right-three" src="assets/img/vulpix/walking/tile011.png"/>
+  <img id="vulpix-attacking-down-one" src="assets/img/vulpix/attacking/tile000.png"/>
+  <img id="vulpix-attacking-down-two" src="assets/img/vulpix/attacking/tile001.png"/>
+  <img id="vulpix-attacking-down-three" src="assets/img/vulpix/attacking/tile002.png"/>
+  <img id="vulpix-attacking-up-one" src="assets/img/vulpix/attacking/tile003.png"/>
+  <img id="vulpix-attacking-up-two" src="assets/img/vulpix/attacking/tile004.png"/>
+  <img id="vulpix-attacking-up-three" src="assets/img/vulpix/attacking/tile005.png"/>
+  <img id="vulpix-attacking-left-one" src="assets/img/vulpix/attacking/tile006.png"/>
+  <img id="vulpix-attacking-left-two" src="assets/img/vulpix/attacking/tile007.png"/>
+  <img id="vulpix-attacking-left-three" src="assets/img/vulpix/attacking/tile008.png"/>
+  <img id="vulpix-attacking-right-one" src="assets/img/vulpix/attacking/tile009.png"/>
+  <img id="vulpix-attacking-right-two" src="assets/img/vulpix/attacking/tile010.png"/>
+  <img id="vulpix-attacking-right-three" src="assets/img/vulpix/attacking/tile011.png"/>
+  <img id="vulpix-sleeping-down-one" src="assets/img/vulpix/sleeping/tile000.png"/>
+  <img id="vulpix-sleeping-down-two" src="assets/img/vulpix/sleeping/tile001.png"/>
+  <img id="vulpix-sleeping-down-three" src="assets/img/vulpix/sleeping/tile002.png"/>
+  <img id="vulpix-sleeping-up-one" src="assets/img/vulpix/sleeping/tile000.png"/>
+  <img id="vulpix-sleeping-up-two" src="assets/img/vulpix/sleeping/tile001.png"/>
+  <img id="vulpix-sleeping-up-three" src="assets/img/vulpix/sleeping/tile002.png"/>
+  <img id="vulpix-sleeping-left-one" src="assets/img/vulpix/sleeping/tile000.png"/>
+  <img id="vulpix-sleeping-left-two" src="assets/img/vulpix/sleeping/tile001.png"/>
+  <img id="vulpix-sleeping-left-three" src="assets/img/vulpix/sleeping/tile002.png"/>
+  <img id="vulpix-sleeping-right-one" src="assets/img/vulpix/sleeping/tile000.png"/>
+  <img id="vulpix-sleeping-right-two" src="assets/img/vulpix/sleeping/tile001.png"/>
+  <img id="vulpix-sleeping-right-three" src="assets/img/vulpix/sleeping/tile002.png"/>
+
+  <img id="wartortle-dead-down-one" src="assets/img/wartortle/walking/tile012.png"/>
+  <img id="wartortle-walking-down-one" src="assets/img/wartortle/walking/tile000.png"/>
+  <img id="wartortle-walking-down-two" src="assets/img/wartortle/walking/tile001.png"/>
+  <img id="wartortle-walking-down-three" src="assets/img/wartortle/walking/tile002.png"/>
+  <img id="wartortle-walking-up-one" src="assets/img/wartortle/walking/tile003.png"/>
+  <img id="wartortle-walking-up-two" src="assets/img/wartortle/walking/tile004.png"/>
+  <img id="wartortle-walking-up-three" src="assets/img/wartortle/walking/tile005.png"/>
+  <img id="wartortle-walking-left-one" src="assets/img/wartortle/walking/tile006.png"/>
+  <img id="wartortle-walking-left-two" src="assets/img/wartortle/walking/tile007.png"/>
+  <img id="wartortle-walking-left-three" src="assets/img/wartortle/walking/tile008.png"/>
+  <img id="wartortle-walking-right-one" src="assets/img/wartortle/walking/tile009.png"/>
+  <img id="wartortle-walking-right-two" src="assets/img/wartortle/walking/tile010.png"/>
+  <img id="wartortle-walking-right-three" src="assets/img/wartortle/walking/tile011.png"/>
+  <img id="wartortle-attacking-down-one" src="assets/img/wartortle/attacking/tile000.png"/>
+  <img id="wartortle-attacking-down-two" src="assets/img/wartortle/attacking/tile001.png"/>
+  <img id="wartortle-attacking-down-three" src="assets/img/wartortle/attacking/tile002.png"/>
+  <img id="wartortle-attacking-up-one" src="assets/img/wartortle/attacking/tile003.png"/>
+  <img id="wartortle-attacking-up-two" src="assets/img/wartortle/attacking/tile004.png"/>
+  <img id="wartortle-attacking-up-three" src="assets/img/wartortle/attacking/tile005.png"/>
+  <img id="wartortle-attacking-left-one" src="assets/img/wartortle/attacking/tile006.png"/>
+  <img id="wartortle-attacking-left-two" src="assets/img/wartortle/attacking/tile007.png"/>
+  <img id="wartortle-attacking-left-three" src="assets/img/wartortle/attacking/tile008.png"/>
+  <img id="wartortle-attacking-right-one" src="assets/img/wartortle/attacking/tile009.png"/>
+  <img id="wartortle-attacking-right-two" src="assets/img/wartortle/attacking/tile010.png"/>
+  <img id="wartortle-attacking-right-three" src="assets/img/wartortle/attacking/tile011.png"/>
+  <img id="wartortle-sleeping-down-one" src="assets/img/wartortle/sleeping/tile000.png"/>
+  <img id="wartortle-sleeping-down-two" src="assets/img/wartortle/sleeping/tile001.png"/>
+  <img id="wartortle-sleeping-down-three" src="assets/img/wartortle/sleeping/tile002.png"/>
+  <img id="wartortle-sleeping-up-one" src="assets/img/wartortle/sleeping/tile000.png"/>
+  <img id="wartortle-sleeping-up-two" src="assets/img/wartortle/sleeping/tile001.png"/>
+  <img id="wartortle-sleeping-up-three" src="assets/img/wartortle/sleeping/tile002.png"/>
+  <img id="wartortle-sleeping-left-one" src="assets/img/wartortle/sleeping/tile000.png"/>
+  <img id="wartortle-sleeping-left-two" src="assets/img/wartortle/sleeping/tile001.png"/>
+  <img id="wartortle-sleeping-left-three" src="assets/img/wartortle/sleeping/tile002.png"/>
+  <img id="wartortle-sleeping-right-one" src="assets/img/wartortle/sleeping/tile000.png"/>
+  <img id="wartortle-sleeping-right-two" src="assets/img/wartortle/sleeping/tile001.png"/>
+  <img id="wartortle-sleeping-right-three" src="assets/img/wartortle/sleeping/tile002.png"/>
+
+  <img id="zubat-dead-down-one" src="assets/img/zubat/walking/tile012.png"/>
+  <img id="zubat-walking-down-one" src="assets/img/zubat/walking/tile000.png"/>
+  <img id="zubat-walking-down-two" src="assets/img/zubat/walking/tile001.png"/>
+  <img id="zubat-walking-down-three" src="assets/img/zubat/walking/tile002.png"/>
+  <img id="zubat-walking-up-one" src="assets/img/zubat/walking/tile003.png"/>
+  <img id="zubat-walking-up-two" src="assets/img/zubat/walking/tile004.png"/>
+  <img id="zubat-walking-up-three" src="assets/img/zubat/walking/tile005.png"/>
+  <img id="zubat-walking-left-one" src="assets/img/zubat/walking/tile006.png"/>
+  <img id="zubat-walking-left-two" src="assets/img/zubat/walking/tile007.png"/>
+  <img id="zubat-walking-left-three" src="assets/img/zubat/walking/tile008.png"/>
+  <img id="zubat-walking-right-one" src="assets/img/zubat/walking/tile009.png"/>
+  <img id="zubat-walking-right-two" src="assets/img/zubat/walking/tile010.png"/>
+  <img id="zubat-walking-right-three" src="assets/img/zubat/walking/tile011.png"/>
+  <img id="zubat-attacking-down-one" src="assets/img/zubat/attacking/tile000.png"/>
+  <img id="zubat-attacking-down-two" src="assets/img/zubat/attacking/tile001.png"/>
+  <img id="zubat-attacking-down-three" src="assets/img/zubat/attacking/tile002.png"/>
+  <img id="zubat-attacking-up-one" src="assets/img/zubat/attacking/tile003.png"/>
+  <img id="zubat-attacking-up-two" src="assets/img/zubat/attacking/tile004.png"/>
+  <img id="zubat-attacking-up-three" src="assets/img/zubat/attacking/tile005.png"/>
+  <img id="zubat-attacking-left-one" src="assets/img/zubat/attacking/tile006.png"/>
+  <img id="zubat-attacking-left-two" src="assets/img/zubat/attacking/tile007.png"/>
+  <img id="zubat-attacking-left-three" src="assets/img/zubat/attacking/tile008.png"/>
+  <img id="zubat-attacking-right-one" src="assets/img/zubat/attacking/tile009.png"/>
+  <img id="zubat-attacking-right-two" src="assets/img/zubat/attacking/tile010.png"/>
+  <img id="zubat-attacking-right-three" src="assets/img/zubat/attacking/tile011.png"/>
+  <img id="zubat-sleeping-down-one" src="assets/img/zubat/sleeping/tile000.png"/>
+  <img id="zubat-sleeping-down-two" src="assets/img/zubat/sleeping/tile001.png"/>
+  <img id="zubat-sleeping-down-three" src="assets/img/zubat/sleeping/tile002.png"/>
+  <img id="zubat-sleeping-up-one" src="assets/img/zubat/sleeping/tile000.png"/>
+  <img id="zubat-sleeping-up-two" src="assets/img/zubat/sleeping/tile001.png"/>
+  <img id="zubat-sleeping-up-three" src="assets/img/zubat/sleeping/tile002.png"/>
+  <img id="zubat-sleeping-left-one" src="assets/img/zubat/sleeping/tile000.png"/>
+  <img id="zubat-sleeping-left-two" src="assets/img/zubat/sleeping/tile001.png"/>
+  <img id="zubat-sleeping-left-three" src="assets/img/zubat/sleeping/tile002.png"/>
+  <img id="zubat-sleeping-right-one" src="assets/img/zubat/sleeping/tile000.png"/>
+  <img id="zubat-sleeping-right-two" src="assets/img/zubat/sleeping/tile001.png"/>
+  <img id="zubat-sleeping-right-three" src="assets/img/zubat/sleeping/tile002.png"/>
+
+  <img id="trainer-dead-down-one" src="assets/img/trainer/walking/tile012.png"/>
+  <img id="trainer-walking-down-one" src="assets/img/trainer/walking/tile000.png"/>
+  <img id="trainer-walking-down-two" src="assets/img/trainer/walking/tile001.png"/>
+  <img id="trainer-walking-down-three" src="assets/img/trainer/walking/tile002.png"/>
+  <img id="trainer-walking-up-one" src="assets/img/trainer/walking/tile003.png"/>
+  <img id="trainer-walking-up-two" src="assets/img/trainer/walking/tile004.png"/>
+  <img id="trainer-walking-up-three" src="assets/img/trainer/walking/tile005.png"/>
+  <img id="trainer-walking-left-one" src="assets/img/trainer/walking/tile006.png"/>
+  <img id="trainer-walking-left-two" src="assets/img/trainer/walking/tile007.png"/>
+  <img id="trainer-walking-left-three" src="assets/img/trainer/walking/tile008.png"/>
+  <img id="trainer-walking-right-one" src="assets/img/trainer/walking/tile009.png"/>
+  <img id="trainer-walking-right-two" src="assets/img/trainer/walking/tile010.png"/>
+  <img id="trainer-walking-right-three" src="assets/img/trainer/walking/tile011.png"/>
+  <img id="trainer-attacking-down-one" src="assets/img/trainer/attacking/tile000.png"/>
+  <img id="trainer-attacking-down-two" src="assets/img/trainer/attacking/tile001.png"/>
+  <img id="trainer-attacking-down-three" src="assets/img/trainer/attacking/tile002.png"/>
+  <img id="trainer-attacking-up-one" src="assets/img/trainer/attacking/tile003.png"/>
+  <img id="trainer-attacking-up-two" src="assets/img/trainer/attacking/tile004.png"/>
+  <img id="trainer-attacking-up-three" src="assets/img/trainer/attacking/tile005.png"/>
+  <img id="trainer-attacking-left-one" src="assets/img/trainer/attacking/tile006.png"/>
+  <img id="trainer-attacking-left-two" src="assets/img/trainer/attacking/tile007.png"/>
+  <img id="trainer-attacking-left-three" src="assets/img/trainer/attacking/tile008.png"/>
+  <img id="trainer-attacking-right-one" src="assets/img/trainer/attacking/tile009.png"/>
+  <img id="trainer-attacking-right-two" src="assets/img/trainer/attacking/tile010.png"/>
+  <img id="trainer-attacking-right-three" src="assets/img/trainer/attacking/tile011.png"/>
+  <img id="trainer-sleeping-down-one" src="assets/img/trainer/sleeping/tile000.png"/>
+  <img id="trainer-sleeping-down-two" src="assets/img/trainer/sleeping/tile001.png"/>
+  <img id="trainer-sleeping-down-three" src="assets/img/trainer/sleeping/tile002.png"/>
+  <img id="trainer-sleeping-up-one" src="assets/img/trainer/sleeping/tile000.png"/>
+  <img id="trainer-sleeping-up-two" src="assets/img/trainer/sleeping/tile001.png"/>
+  <img id="trainer-sleeping-up-three" src="assets/img/trainer/sleeping/tile002.png"/>
+  <img id="trainer-sleeping-left-one" src="assets/img/trainer/sleeping/tile000.png"/>
+  <img id="trainer-sleeping-left-two" src="assets/img/trainer/sleeping/tile001.png"/>
+  <img id="trainer-sleeping-left-three" src="assets/img/trainer/sleeping/tile002.png"/>
+  <img id="trainer-sleeping-right-one" src="assets/img/trainer/sleeping/tile000.png"/>
+  <img id="trainer-sleeping-right-two" src="assets/img/trainer/sleeping/tile001.png"/>
+  <img id="trainer-sleeping-right-three" src="assets/img/trainer/sleeping/tile002.png"/>
+
+
+
+
+
+
+
+
+</div>
