@@ -640,6 +640,13 @@ self.displayHp = Math.round(self.hpmax);
     self.size = mountSize.height+self.sizeMod;
     self.sizex = mountSize.width+self.sizeMod;
     self.sizey = mountSize.height+self.sizeMod;
+    self.rightSideStatic = self.x + (mountSize.width+self.sizeMod)/2+1;
+    self.leftSideStatic = self.x - (mountSize.width+self.sizeMod)/2+1;
+    self.topSideStatic =  self.y - (mountSize.height+self.sizeMod)/2+1;
+    self.bottomSideStatic = self.y + (mountSize.height+self.sizeMod)/2+1;
+
+
+
     if(self.ball === true){
       return;
     }
@@ -1731,25 +1738,26 @@ function TrainerObject() {
     var img = <HTMLImageElement>document.getElementById(this.name + "-" + this.action + "-" + this.direction + "-" + this.frame);
     if(game.battleBool === true){
       self.speed = .1;
+      self.mount = false;
       if(self.mount === false && team[selectedTeam].dead === false){
         if(team[selectedTeam].direction === "up"){
-          self.x = team[selectedTeam].x-10;
-          self.y = team[selectedTeam].topSide  + (img.height+self.sizeMod)+15;
+          self.x = team[selectedTeam].x + 15;
+          self.y = team[selectedTeam].bottomSideStatic+10;
           self.direction = "up";
         }
 
         if(team[selectedTeam].direction === "down"){
-          self.x = team[selectedTeam].x+10;
-          self.y = team[selectedTeam].bottomSide - ((img.height+self.sizeMod)+15);
+          self.x = team[selectedTeam].x+ 15;
+          self.y = team[selectedTeam].topSideStatic-10;
             self.direction = "down";
         }
         if(team[selectedTeam].direction === "right"){
-          self.x = team[selectedTeam].rightSide + ((img.width+self.sizeMod)+15);
+          self.x = team[selectedTeam].leftSideStatic-10;
           self.y = team[selectedTeam].y;
             self.direction = "right";
         }
         if(team[selectedTeam].direction === "left"){
-          self.x = team[selectedTeam].leftSide - (img.width+self.sizeMod)+15;
+          self.x = team[selectedTeam].rightSideStatic+10;
           self.y = team[selectedTeam].y;
             self.direction = "left";
         }
