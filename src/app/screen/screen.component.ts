@@ -1744,12 +1744,12 @@ function TrainerObject() {
             self.direction = "down";
         }
         if(team[selectedTeam].direction === "right"){
-          self.x = team[selectedTeam].rightSide - ((img.width+self.sizeMod)+15);
+          self.x = team[selectedTeam].rightSide + ((img.width+self.sizeMod)+15);
           self.y = team[selectedTeam].y;
             self.direction = "right";
         }
         if(team[selectedTeam].direction === "left"){
-          self.x = team[selectedTeam].leftSide + (img.width+self.sizeMod)+15;
+          self.x = team[selectedTeam].leftSide - (img.width+self.sizeMod)+15;
           self.y = team[selectedTeam].y;
             self.direction = "left";
         }
